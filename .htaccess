@@ -1,0 +1,31 @@
+# TreeForge — protezione cartella
+# Funziona uguale in locale e online: nessun percorso assoluto attivo.
+Options -Indexes
+DirectoryIndex index.php
+
+# La password è verificata da auth.php leggendo .htpasswd qui accanto
+# (se .htpasswd non contiene utenti la protezione è disattivata: vedi README.md).
+# Con PHP in FastCGI/FPM l'header Authorization va passato esplicitamente a PHP.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# File che non devono mai essere serviti via web (.htpasswd, .htaccess, database, appunti .md, backup, log)
+<FilesMatch "(^\.|\.(sqlite|sqlite-wal|sqlite-shm|db|md|bak|log)$)">
+    Require all denied
+</FilesMatch>
+
+# ---------------------------------------------------------------------------
+# FACOLTATIVO — doppia protezione a livello Apache (HTTP Basic).
+# Non serve per proteggere TreeForge: basta un utente in .htpasswd (auth.php).
+# Per attivarla togli il "#" dalle 4 righe qui sotto e scrivi in AuthUserFile il
+# percorso ASSOLUTO di .htpasswd sul tuo server (non un URL). Un percorso sbagliato
+# dà Errore 500: come trovarlo è spiegato nel README.md.
+# Esempio XAMPP macOS: /Applications/XAMPP/xamppfiles/htdocs/treeforge/.htpasswd
+# ---------------------------------------------------------------------------
+# AuthType Basic
+# AuthName "TreeForge"
+# AuthUserFile /percorso/assoluto/treeforge/.htpasswd
+# Require valid-user

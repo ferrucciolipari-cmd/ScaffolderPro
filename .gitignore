@@ -1,0 +1,23 @@
+# Credenziali: ognuno crea le proprie (vedi README.md)
+.htpasswd
+
+# Dati creati a runtime (database, impostazioni con la API key, ZIP temporanei)
+data/*
+!data/.htaccess
+
+# Vecchi backup .bak delle prime versioni
+.backups/
+
+# Archivi
+*.zip
+
+# Metadati di sistema
+.DS_Store
+._*
+__MACOSX/
+Thumbs.db
+desktop.ini
+
+# Note interne di sviluppo
+CLAUDE.md
+ROADMAP-AI/
