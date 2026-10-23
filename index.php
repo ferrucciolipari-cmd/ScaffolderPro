@@ -459,92 +459,98 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 </div>
 
 <!-- Impostazioni generali -->
-<dialog id="settingsDialog" class="modal">
+<dialog id="settingsDialog" class="modal framed">
     <form id="settingsForm" method="dialog">
         <div class="modal-head"><h3><?= ic('user') ?> <?= tx('set.title') ?></h3><button type="button" class="icon-btn" data-close title="<?= tx('common.close') ?>"><?= ic('x') ?></button></div>
-        <div class="settings-grid">
-            <fieldset>
-                <legend><?= tx('set.profile') ?></legend>
-                <label><?= tx('set.language') ?>
-                    <span class="lang-pick"><span id="langFlag"><?= flagSvg(LANGUAGES[uiLang()][2]) ?></span>
-                    <select name="language"><?php foreach (LANGUAGES as $code => $l): ?><option value="<?= h($code) ?>"<?= $code === uiLang() ? ' selected' : '' ?>><?= h($l[0]) ?><?= $code !== 'en' ? ' — ' . h($l[1]) : '' ?></option><?php endforeach; ?></select></span>
-                </label>
-                <label><?= tx('set.name') ?> <input type="text" name="dev_name"></label>
-                <label><?= tx('set.environment') ?> <input type="text" name="environment"></label>
-                <label><?= tx('set.default_root') ?> <input type="text" name="default_root" placeholder="<?= h($defaultRoot) ?>"></label>
-                <div class="reset-box">
-                    <button type="button" class="sbtn danger-btn" id="resetAllBtn"><?= ic('undo') ?> <?= tx('set.reset_all') ?></button>
-                    <span class="muted"><?= tx('set.reset_hint') ?></span>
-                </div>
-            </fieldset>
-            <fieldset>
-                <legend>Claude / Anthropic</legend>
-                <label>API key <input type="password" name="api_key" autocomplete="off" placeholder="sk-ant-…"></label>
-                <div class="muted" id="apiKeyState"></div>
-                <label class="check"><input type="checkbox" name="remove_api_key"> <?= tx('set.remove_key') ?></label>
-                <label><?= tx('set.default_model') ?> <select name="claude_model"></select></label>
-                <label><?= tx('set.default_effort') ?>
-                    <select name="claude_effort"><option>low</option><option>medium</option><option>high</option><option>xhigh</option><option>max</option></select>
-                </label>
-                <p class="muted"><?= th('set.key_note') ?></p>
-            </fieldset>
-            <fieldset>
-                <legend><?= tx('set.interface') ?></legend>
-                <label><?= tx('set.font_size') ?> <input type="number" name="editor_font" min="10" max="32"></label>
-                <label class="check"><input type="checkbox" name="editor_wrap"> <?= tx('set.wrap') ?></label>
-                <label class="check"><input type="checkbox" name="show_right"> <?= tx('set.show_right') ?></label>
-                <button type="button" class="sbtn" id="resetLayoutBtn"><?= tx('set.reset_columns') ?></button>
-            </fieldset>
-            <fieldset>
-                <legend><?= tx('set.php_claude') ?></legend>
-                <label class="check"><input type="checkbox" name="php_lint"> <?= tx('set.php_lint') ?></label>
-                <label class="check"><input type="checkbox" name="php_lint_live"> <?= tx('set.php_lint_live') ?></label>
-                <div class="muted" id="lintInfo"></div>
-                <label class="check"><input type="checkbox" name="claude_apply_save"> <?= tx('set.claude_apply_save') ?></label>
-                <label><?= tx('set.error_log_path') ?> <input type="text" name="error_log_path" placeholder="/var/www/vhosts/example.com/logs/error_log" autocomplete="off" spellcheck="false"></label>
-            </fieldset>
-            <fieldset>
-                <legend><?= tx('set.download_server') ?></legend>
-                <label><?= tx('set.backup_skip') ?> <input type="text" name="backup_skip"></label>
-                <label><?= tx('set.upload_max') ?> <input type="number" name="upload_max_gb" min="0.1" max="1024" step="0.1"></label>
-                <div class="limits" id="limitsBox"></div>
-            </fieldset>
+        <div class="modal-body">
+            <div class="settings-grid">
+                <fieldset>
+                    <legend><?= tx('set.profile') ?></legend>
+                    <label><?= tx('set.language') ?>
+                        <span class="lang-pick"><span id="langFlag"><?= flagSvg(LANGUAGES[uiLang()][2]) ?></span>
+                        <select name="language"><?php foreach (LANGUAGES as $code => $l): ?><option value="<?= h($code) ?>"<?= $code === uiLang() ? ' selected' : '' ?>><?= h($l[0]) ?><?= $code !== 'en' ? ' — ' . h($l[1]) : '' ?></option><?php endforeach; ?></select></span>
+                    </label>
+                    <label><?= tx('set.name') ?> <input type="text" name="dev_name"></label>
+                    <label><?= tx('set.environment') ?> <input type="text" name="environment"></label>
+                    <label><?= tx('set.default_root') ?> <input type="text" name="default_root" placeholder="<?= h($defaultRoot) ?>"></label>
+                    <div class="reset-box">
+                        <button type="button" class="sbtn danger-btn" id="resetAllBtn"><?= ic('undo') ?> <?= tx('set.reset_all') ?></button>
+                        <span class="muted"><?= tx('set.reset_hint') ?></span>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>Claude / Anthropic</legend>
+                    <label>API key <input type="password" name="api_key" autocomplete="off" placeholder="sk-ant-…"></label>
+                    <div class="muted" id="apiKeyState"></div>
+                    <label class="check"><input type="checkbox" name="remove_api_key"> <?= tx('set.remove_key') ?></label>
+                    <label><?= tx('set.default_model') ?> <select name="claude_model"></select></label>
+                    <label><?= tx('set.default_effort') ?>
+                        <select name="claude_effort"><option>low</option><option>medium</option><option>high</option><option>xhigh</option><option>max</option></select>
+                    </label>
+                    <p class="muted"><?= th('set.key_note') ?></p>
+                </fieldset>
+                <fieldset>
+                    <legend><?= tx('set.interface') ?></legend>
+                    <label><?= tx('set.font_size') ?> <input type="number" name="editor_font" min="10" max="32"></label>
+                    <label class="check"><input type="checkbox" name="editor_wrap"> <?= tx('set.wrap') ?></label>
+                    <label class="check"><input type="checkbox" name="show_right"> <?= tx('set.show_right') ?></label>
+                    <button type="button" class="sbtn" id="resetLayoutBtn"><?= tx('set.reset_columns') ?></button>
+                </fieldset>
+                <fieldset>
+                    <legend><?= tx('set.php_claude') ?></legend>
+                    <label class="check"><input type="checkbox" name="php_lint"> <?= tx('set.php_lint') ?></label>
+                    <label class="check"><input type="checkbox" name="php_lint_live"> <?= tx('set.php_lint_live') ?></label>
+                    <div class="muted" id="lintInfo"></div>
+                    <label class="check"><input type="checkbox" name="claude_apply_save"> <?= tx('set.claude_apply_save') ?></label>
+                    <label><?= tx('set.error_log_path') ?> <input type="text" name="error_log_path" placeholder="/var/www/vhosts/example.com/logs/error_log" autocomplete="off" spellcheck="false"></label>
+                </fieldset>
+                <fieldset>
+                    <legend><?= tx('set.download_server') ?></legend>
+                    <label><?= tx('set.backup_skip') ?> <input type="text" name="backup_skip"></label>
+                    <label><?= tx('set.upload_max') ?> <input type="number" name="upload_max_gb" min="0.1" max="1024" step="0.1"></label>
+                    <div class="limits" id="limitsBox"></div>
+                </fieldset>
+            </div>
         </div>
-        <div class="hrow end"><span class="muted" id="settingsMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="submit" class="pbtn"><?= tx('set.save') ?></button></div>
+        <div class="hrow end modal-foot"><span class="muted" id="settingsMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="submit" class="pbtn"><?= tx('set.save') ?></button></div>
     </form>
 </dialog>
 
 <!-- Carica file / ZIP: scelta dei file (il caricamento vero avviene nella finestra di trasferimento) -->
-<dialog id="uploadDialog" class="modal small">
+<dialog id="uploadDialog" class="modal small framed">
     <div class="modal-head"><h3><?= ic('upload') ?> <?= tx('up.title') ?> <span id="uploadTarget"></span></h3><button type="button" class="icon-btn" data-close title="<?= tx('common.close') ?>"><?= ic('x') ?></button></div>
-    <div class="limits" id="uploadLimits"></div>
-    <label class="drop-area" id="dropArea">
-        <input type="file" id="uploadInput" multiple hidden>
-        <input type="file" id="uploadFolderInput" webkitdirectory multiple hidden>
-        <?= ic('upload') ?>
-        <span><?= th('up.drop') ?> · <a href="#" id="pickFolder"><?= tx('up.pick_folder') ?></a></span>
-        <small class="muted" id="uploadChosen"></small>
-    </label>
-    <label class="check"><input type="checkbox" id="uploadExtract" checked> <?= tx('up.extract') ?></label>
-    <label class="check"><input type="checkbox" id="uploadOverwrite"> <?= tx('up.overwrite') ?></label>
-    <p class="muted"><?= tx('up.options_note') ?></p>
-    <div class="hrow end"><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="button" class="pbtn" id="uploadStart" disabled><?= tx('up.start') ?></button></div>
+    <div class="modal-body">
+        <div class="limits" id="uploadLimits"></div>
+        <label class="drop-area" id="dropArea">
+            <input type="file" id="uploadInput" multiple hidden>
+            <input type="file" id="uploadFolderInput" webkitdirectory multiple hidden>
+            <?= ic('upload') ?>
+            <span><?= th('up.drop') ?> · <a href="#" id="pickFolder"><?= tx('up.pick_folder') ?></a></span>
+            <small class="muted" id="uploadChosen"></small>
+        </label>
+        <label class="check"><input type="checkbox" id="uploadExtract" checked> <?= tx('up.extract') ?></label>
+        <label class="check"><input type="checkbox" id="uploadOverwrite"> <?= tx('up.overwrite') ?></label>
+        <p class="muted"><?= tx('up.options_note') ?></p>
+    </div>
+    <div class="hrow end modal-foot"><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="button" class="pbtn" id="uploadStart" disabled><?= tx('up.start') ?></button></div>
 </dialog>
 
 <!-- Trasferimento in corso: avanzamento ed esito di ogni elemento -->
-<dialog id="transferDialog" class="modal transfer">
+<dialog id="transferDialog" class="modal transfer framed">
     <div class="modal-head"><h3><?= ic('upload') ?> <span id="trTitle"><?= tx('tr.uploading') ?></span></h3></div>
-    <div class="tr-summary"><span id="trCount"></span></div>
-    <progress id="trProgress" max="100" value="0"></progress>
-    <div class="muted tr-opts" id="trOpts"></div>
-    <div class="tr-conflict" id="trConflict" hidden>
-        <div class="tr-conflict-head"><?= ic('alert') ?><span id="trConflictText"></span></div>
-        <div class="tr-conflict-list" id="trConflictList"></div>
-        <div class="hrow end"><button type="button" class="sbtn" id="trConflictNo"><?= tx('tr.dont_overwrite') ?></button><button type="button" class="pbtn warn" id="trConflictYes"><?= tx('tr.overwrite') ?></button></div>
+    <div class="modal-body">
+        <div class="tr-summary"><span id="trCount"></span></div>
+        <progress id="trProgress" max="100" value="0"></progress>
+        <div class="muted tr-opts" id="trOpts"></div>
+        <div class="tr-conflict" id="trConflict" hidden>
+            <div class="tr-conflict-head"><?= ic('alert') ?><span id="trConflictText"></span></div>
+            <div class="tr-conflict-list" id="trConflictList"></div>
+            <div class="hrow end"><button type="button" class="sbtn" id="trConflictNo"><?= tx('tr.dont_overwrite') ?></button><button type="button" class="pbtn warn" id="trConflictYes"><?= tx('tr.overwrite') ?></button></div>
+        </div>
+        <div class="tr-alert" id="trAlert" hidden><?= ic('alert') ?><span id="trAlertText"></span></div>
+        <div class="tr-list" id="trList"></div>
     </div>
-    <div class="tr-alert" id="trAlert" hidden><?= ic('alert') ?><span id="trAlertText"></span></div>
-    <div class="tr-list" id="trList"></div>
-    <div class="hrow end">
+    <div class="hrow end modal-foot">
         <button type="button" class="sbtn" id="trPauseAll" hidden><?= tx('tr.pause_all') ?></button>
         <button type="button" class="sbtn" id="trCancel"><?= tx('tr.stop') ?></button>
         <button type="button" class="pbtn" id="trAck" hidden><?= ic('check') ?> <?= tx('tr.ack') ?></button>
@@ -552,13 +558,15 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 </dialog>
 
 <!-- Importa una cURL incollata -->
-<dialog id="curlDialog" class="modal">
+<dialog id="curlDialog" class="modal framed">
     <div class="modal-head"><h3><?= ic('terminal') ?> <?= tx('curl.title') ?></h3><button type="button" class="icon-btn" data-close title="<?= tx('common.close') ?>"><?= ic('x') ?></button></div>
-    <p class="muted"><?= th('curl.help') ?></p>
-    <textarea id="curlInput" class="prompt" rows="12" spellcheck="false" placeholder="curl -H 'X-Api-Key: …' 'https://api.example.com/v1/data'"></textarea>
-    <div id="curlPreview" class="curl-preview" hidden></div>
-    <label class="check"><input type="checkbox" id="curlRun" checked> <?= tx('curl.run_after') ?></label>
-    <div class="hrow end"><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="button" class="pbtn" id="curlImport" disabled><?= tx('curl.import') ?></button></div>
+    <div class="modal-body">
+        <p class="muted"><?= th('curl.help') ?></p>
+        <textarea id="curlInput" class="prompt" rows="12" spellcheck="false" placeholder="curl -H 'X-Api-Key: …' 'https://api.example.com/v1/data'"></textarea>
+        <div id="curlPreview" class="curl-preview" hidden></div>
+        <label class="check"><input type="checkbox" id="curlRun" checked> <?= tx('curl.run_after') ?></label>
+    </div>
+    <div class="hrow end modal-foot"><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="button" class="pbtn" id="curlImport" disabled><?= tx('curl.import') ?></button></div>
 </dialog>
 
 <!-- Finestra grande per Claude -->
@@ -609,17 +617,19 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 </dialog>
 
 <!-- Primo avvio: password di accesso creata dall'interfaccia -->
-<dialog id="setupAuthDialog" class="modal small">
+<dialog id="setupAuthDialog" class="modal small framed">
     <form id="setupAuthForm" method="dialog">
         <div class="modal-head"><h3><?= ic('user') ?> <?= tx('auth.setup_title') ?></h3><button type="button" class="icon-btn" data-close title="<?= tx('common.close') ?>"><?= ic('x') ?></button></div>
-        <p class="muted"><?= tx('auth.setup_intro') ?></p>
-        <div class="settings-grid one">
-            <label><?= tx('auth.user') ?> <input type="text" name="user" value="admin" autocomplete="username" required maxlength="64"></label>
-            <label><?= tx('auth.pass') ?> <input type="password" name="pass" autocomplete="new-password" required minlength="8"></label>
-            <label><?= tx('auth.pass2') ?> <input type="password" name="pass2" autocomplete="new-password" required minlength="8"></label>
+        <div class="modal-body">
+            <p class="muted"><?= tx('auth.setup_intro') ?></p>
+            <div class="settings-grid one">
+                <label><?= tx('auth.user') ?> <input type="text" name="user" value="admin" autocomplete="username" required maxlength="64"></label>
+                <label><?= tx('auth.pass') ?> <input type="password" name="pass" autocomplete="new-password" required minlength="8"></label>
+                <label><?= tx('auth.pass2') ?> <input type="password" name="pass2" autocomplete="new-password" required minlength="8"></label>
+            </div>
+            <p class="muted"><?= tx('auth.setup_note') ?></p>
         </div>
-        <p class="muted"><?= tx('auth.setup_note') ?></p>
-        <div class="hrow end"><span class="muted" id="setupAuthMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="submit" class="pbtn"><?= tx('auth.setup_save') ?></button></div>
+        <div class="hrow end modal-foot"><span class="muted" id="setupAuthMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="submit" class="pbtn"><?= tx('auth.setup_save') ?></button></div>
     </form>
 </dialog>
 
