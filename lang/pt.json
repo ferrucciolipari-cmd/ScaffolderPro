@@ -633,5 +633,12 @@
  "ver.mode_full": "Texto completo",
  "ver.same_lines": "… {n} linhas iguais",
  "nav.back": "Voltar",
- "nav.forward": "Avançar"
+ "nav.forward": "Avançar",
+ "auth.login_title": "Iniciar sessão",
+ "auth.login_btn": "Entrar",
+ "auth.login_failed": "Utilizador ou palavra-passe incorretos.",
+ "auth.login_note": "A sessão fica aberta neste navegador até saíres.",
+ "auth.logout": "Sair",
+ "auth.logout_title": "Terminar sessão ({user})",
+ "auth.logout_dirty": "Alguns separadores têm alterações não guardadas. Sair mesmo assim?"
 }

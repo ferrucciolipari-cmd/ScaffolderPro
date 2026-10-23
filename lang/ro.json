@@ -633,5 +633,12 @@
  "ver.mode_full": "Text complet",
  "ver.same_lines": "… {n} linii identice",
  "nav.back": "Înapoi",
- "nav.forward": "Înainte"
+ "nav.forward": "Înainte",
+ "auth.login_title": "Autentificare",
+ "auth.login_btn": "Intră",
+ "auth.login_failed": "Nume de utilizator sau parolă greșite.",
+ "auth.login_note": "Rămâi conectat în acest browser până când ieși.",
+ "auth.logout": "Ieși",
+ "auth.logout_title": "Deconectare ({user})",
+ "auth.logout_dirty": "Unele file au modificări nesalvate. Ieși oricum?"
 }

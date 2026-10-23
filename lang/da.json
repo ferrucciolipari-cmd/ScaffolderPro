@@ -633,5 +633,12 @@
  "ver.mode_full": "Hele teksten",
  "ver.same_lines": "… {n} uændrede linjer",
  "nav.back": "Tilbage",
- "nav.forward": "Frem"
+ "nav.forward": "Frem",
+ "auth.login_title": "Log ind",
+ "auth.login_btn": "Log ind",
+ "auth.login_failed": "Forkert brugernavn eller adgangskode.",
+ "auth.login_note": "Du forbliver logget ind i denne browser, indtil du logger ud.",
+ "auth.logout": "Log ud",
+ "auth.logout_title": "Log ud ({user})",
+ "auth.logout_dirty": "Nogle faner har ikke-gemte ændringer. Log ud alligevel?"
 }

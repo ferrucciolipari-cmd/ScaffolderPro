@@ -633,5 +633,12 @@
  "ver.mode_full": "Testo completo",
  "ver.same_lines": "… {n} righe uguali",
  "nav.back": "Torna indietro",
- "nav.forward": "Vai avanti"
+ "nav.forward": "Vai avanti",
+ "auth.login_title": "Accedi",
+ "auth.login_btn": "Accedi",
+ "auth.login_failed": "Nome utente o password errati.",
+ "auth.login_note": "Resti collegato su questo browser finché non esci.",
+ "auth.logout": "Esci",
+ "auth.logout_title": "Esci ({user})",
+ "auth.logout_dirty": "Alcune schede hanno modifiche non salvate. Uscire comunque?"
 }

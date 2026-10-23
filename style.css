@@ -1678,3 +1678,24 @@ dialog.modal.quick-open { padding: 0; width: min(620px, 94vw); align-self: start
 /* Indietro / Avanti nella cronologia di navigazione */
 .nav-controls { display: inline-flex; gap: 2px; }
 .nav-controls .tb-btn:disabled { opacity: .35; cursor: default; background: transparent; }
+
+/* Pulsante Esci accanto al pulsante utente */
+.toolbar .logout-btn { gap: 6px; padding: 0 10px 0 9px; font-size: 12.5px; font-weight: 500; }
+.toolbar .logout-btn .ic { width: 15px; height: 15px; }
+.toolbar .logout-btn:hover { color: #f48771; border-color: #c93c37; background: rgba(244, 71, 71, 0.1); }
+@media (max-width: 760px) { .toolbar .logout-btn span { display: none; } .toolbar .logout-btn { padding: 0 9px; } }
+
+/* Selettore Root aperto: velo scuro sotto la tendina, un clic sul velo la chiude */
+.root-overlay { position: fixed; inset: 0; z-index: 1150; background: rgba(0, 0, 0, 0.45); animation: fadeIn 0.15s ease-out; }
+.root-picker.open { z-index: 1200; }
+.root-search-bar #rootClose { flex-shrink: 0; }
+.root-search-bar .link-btn { font-size: 11.5px; }
+
+/* Menu ☰ dell'editor: icona a sinistra, testo a destra, spunta per l'anteprima affiancata */
+#editorMenu .ctx-item { align-items: center; }
+#editorMenu .ctx-item .ic { margin-top: 0; }
+#editorMenu .ctx-check { margin-left: auto; visibility: hidden; }
+#editorMenu .ctx-check .ic { color: #4fc1ff; }
+#editorMenu .ctx-item.on .ctx-check { visibility: visible; }
+.ctx-item:disabled { opacity: .4; cursor: not-allowed; background: transparent !important; }
+#editorMenuBtn.on { background: #33373a; color: #fff; }

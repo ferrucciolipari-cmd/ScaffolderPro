@@ -633,5 +633,12 @@
  "ver.mode_full": "Πλήρες κείμενο",
  "ver.same_lines": "… {n} ίδιες γραμμές",
  "nav.back": "Πίσω",
- "nav.forward": "Εμπρός"
+ "nav.forward": "Εμπρός",
+ "auth.login_title": "Σύνδεση",
+ "auth.login_btn": "Σύνδεση",
+ "auth.login_failed": "Λάθος όνομα χρήστη ή κωδικός.",
+ "auth.login_note": "Μένεις συνδεδεμένος σε αυτόν τον browser μέχρι να αποσυνδεθείς.",
+ "auth.logout": "Αποσύνδεση",
+ "auth.logout_title": "Αποσύνδεση ({user})",
+ "auth.logout_dirty": "Κάποιες καρτέλες έχουν μη αποθηκευμένες αλλαγές. Αποσύνδεση παρ' όλα αυτά;"
 }

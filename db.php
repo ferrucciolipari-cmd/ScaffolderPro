@@ -71,6 +71,15 @@ function db(): PDO {
             body       TEXT NOT NULL DEFAULT '',
             updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
         );
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            selector   TEXT PRIMARY KEY,
+            validator  TEXT NOT NULL,
+            user       TEXT NOT NULL,
+            pass_sig   TEXT NOT NULL,
+            agent      TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+            last_used  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+        );
         CREATE TABLE IF NOT EXISTS http_responses (
             request_id  INTEGER PRIMARY KEY,
             status      INTEGER,

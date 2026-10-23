@@ -633,5 +633,12 @@
  "ver.mode_full": "전체 텍스트",
  "ver.same_lines": "… 변경 없는 {n}줄",
  "nav.back": "뒤로",
- "nav.forward": "앞으로"
+ "nav.forward": "앞으로",
+ "auth.login_title": "로그인",
+ "auth.login_btn": "로그인",
+ "auth.login_failed": "사용자 이름 또는 비밀번호가 틀렸습니다.",
+ "auth.login_note": "로그아웃할 때까지 이 브라우저에서 로그인 상태가 유지됩니다.",
+ "auth.logout": "로그아웃",
+ "auth.logout_title": "로그아웃 ({user})",
+ "auth.logout_dirty": "저장되지 않은 변경 사항이 있는 탭이 있습니다. 그래도 로그아웃할까요?"
 }

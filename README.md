@@ -9,7 +9,7 @@ No package installations, no build: just copy the folder and open it in the brow
 - **Go to file** (⌘P / Ctrl+P): fuzzy search on all the file paths of the root.
 - **Go back / Go forward** through the places you visited, like VS Code: ⌃- / ⌃⇧- on Mac, Alt+← / Alt+→ on Windows and Linux, the side buttons of the mouse or the arrows in the editor bar.
 - **Root picker** with search: the folders of your web space as a tree, with a badge for writable (R/W) and read-only (R) folders.
-- **Tabbed editor** (Ace) with syntax highlighting, ⌘S / Ctrl+S, side-by-side website preview. If a file was changed on disk after you opened it (FTP, another user), Scaffolder Pro asks before overwriting it.
+- **Tabbed editor** (Ace) with syntax highlighting, ⌘S / Ctrl+S, side-by-side website preview (in the ☰ menu of the editor bar, with download and delete). If a file was changed on disk after you opened it (FTP, another user), Scaffolder Pro asks before overwriting it.
 - **Find and replace** in the content of all files (⌘⇧F / Ctrl+Shift+F), with regular expressions.
 - **PHP syntax check** before saving: no more blank pages or 500 Error for a forgotten bracket.
 - **Site PHP errors** in a panel, with a click to open the file at the correct line.
@@ -78,7 +78,11 @@ admin:$2y$12$ZczvSVijnz98R5Fc1xW.Guh4D5jhojzV2St7pT97jYFDG5w9.0Oty
 
 ### 2. Reload the page
 
-The browser asks for user and password and the red warning disappears. Done: all pages and actions of Scaffolder Pro are protected.
+Scaffolder Pro shows its sign-in page and the red warning disappears. Done: all pages and actions of Scaffolder Pro are protected.
+
+After signing in you **stay signed in on that browser until you click _Sign out_** (top right, next to the user button):
+no popup, no session that expires after a few minutes. Signing out deletes the login on the server too. If you change a password in `.htpasswd`,
+every browser signed in with the old one has to sign in again.
 The `.htpasswd`, `.htaccess` files, the database and other sensitive files are however always blocked via web.
 
 ### 3. (Optional) Double protection at Apache level
@@ -106,12 +110,13 @@ If you want Apache to ask for the password too, even before PHP starts, in `.hta
 
 Scaffolder Pro is the new name of TreeForge. To upgrade, replace the program files and keep your `data/` folder and `.htpasswd`:
 the old database (`data/treeforge.sqlite`) is renamed automatically at the first start, so versions, trash, log and API requests are kept.
-The browser asks you to sign in again once, and the layout saved in the browser (columns, open tabs) starts from the defaults.
+You sign in once with the new sign-in page, and the layout saved in the browser (columns, open tabs) starts from the defaults.
 
 ## 🧰 Common problems
 
 - **Error 500 after touching `.htaccess`**: almost always a wrong path in `AuthUserFile`. Re-comment the lines from step 3.
-- **The password is asked infinitely** (hosting with PHP-FPM): active `mod_rewrite` is needed; `.htaccess` already passes the `Authorization` header to PHP.
+- **The sign-in page comes back after every click**: the browser is refusing cookies for the site (or a proxy strips them). Allow cookies for your domain.
+- **With the optional Apache protection the password is asked infinitely** (hosting with PHP-FPM): active `mod_rewrite` is needed; `.htaccess` already passes the `Authorization` header to PHP.
 - **"Apache cannot write…"** in the top bar: the web server user doesn't have permissions on the chosen root folder.
   Use a writable subfolder or fix the permissions (`chmod -R a+rwX folder`).
 - **Uploading a big file stops on a hosting behind nginx/a proxy**: chunks are at most 5 MB, so `client_max_body_size` must be at least 6 MB.

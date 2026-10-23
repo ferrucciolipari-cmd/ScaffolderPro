@@ -633,5 +633,12 @@
  "ver.mode_full": "Повний текст",
  "ver.same_lines": "… рядків без змін: {n}",
  "nav.back": "Назад",
- "nav.forward": "Вперед"
+ "nav.forward": "Вперед",
+ "auth.login_title": "Вхід",
+ "auth.login_btn": "Увійти",
+ "auth.login_failed": "Неправильне ім'я користувача або пароль.",
+ "auth.login_note": "Ви залишаєтеся в системі в цьому браузері, доки не вийдете.",
+ "auth.logout": "Вийти",
+ "auth.logout_title": "Вийти ({user})",
+ "auth.logout_dirty": "У деяких вкладках є незбережені зміни. Все одно вийти?"
 }

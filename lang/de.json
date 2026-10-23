@@ -633,5 +633,12 @@
  "ver.mode_full": "Vollständiger Text",
  "ver.same_lines": "… {n} unveränderte Zeilen",
  "nav.back": "Zurück",
- "nav.forward": "Vorwärts"
+ "nav.forward": "Vorwärts",
+ "auth.login_title": "Anmelden",
+ "auth.login_btn": "Anmelden",
+ "auth.login_failed": "Falscher Benutzername oder falsches Passwort.",
+ "auth.login_note": "Du bleibst in diesem Browser angemeldet, bis du dich abmeldest.",
+ "auth.logout": "Abmelden",
+ "auth.logout_title": "Abmelden ({user})",
+ "auth.logout_dirty": "Einige Tabs haben ungespeicherte Änderungen. Trotzdem abmelden?"
 }

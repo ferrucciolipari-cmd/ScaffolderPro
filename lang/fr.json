@@ -633,5 +633,12 @@
  "ver.mode_full": "Texte complet",
  "ver.same_lines": "… {n} lignes identiques",
  "nav.back": "Revenir en arrière",
- "nav.forward": "Aller en avant"
+ "nav.forward": "Aller en avant",
+ "auth.login_title": "Connexion",
+ "auth.login_btn": "Se connecter",
+ "auth.login_failed": "Nom d'utilisateur ou mot de passe incorrect.",
+ "auth.login_note": "Vous restez connecté sur ce navigateur jusqu'à la déconnexion.",
+ "auth.logout": "Déconnexion",
+ "auth.logout_title": "Se déconnecter ({user})",
+ "auth.logout_dirty": "Certains onglets ont des modifications non enregistrées. Se déconnecter quand même ?"
 }

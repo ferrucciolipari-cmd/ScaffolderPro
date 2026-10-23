@@ -4,9 +4,8 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/core.php';
 
-// La sessione serve solo in lettura (token CSRF): rilasciarla subito evita che una richiesta lunga
-// (chiamata a Claude, upload, ZIP) blocchi tutte le altre dello stesso browser
-session_write_close();
+// Nessuna sessione PHP (login e token CSRF stanno nei cookie, vedi auth.php): le richieste lunghe
+// (chiamata a Claude, upload, ZIP) non bloccano le altre dello stesso browser
 
 $action = $_POST['action'] ?? ($_GET['action'] ?? '');
 
@@ -981,10 +980,19 @@ switch ($action) {
         if ($user === '' || !preg_match('/^[\p{L}\p{N}._@-]{1,64}$/u', $user)) fail(t('auth.user_invalid'));
         if (strlen($pass) < 8) fail(t('auth.pass_short', ['n' => 8]));
         $file = __DIR__ . '/.htpasswd';
+        // .htpasswd copiato via FTP/terminale (di un altro utente): se la cartella è scrivibile lo si ricrea
+        if (is_file($file) && !is_writable($file) && is_writable(__DIR__)) @unlink($file);
         $text = "# Scaffolder Pro — " . t('auth.htpasswd_note') . "\n" . $user . ':' . password_hash($pass, PASSWORD_BCRYPT) . "\n";
         if (@file_put_contents($file, $text, LOCK_EX) === false) fail(t('auth.cannot_write', ['dir' => __DIR__]));
         @chmod($file, 0644);
         addLog('create', t('log.auth_enabled', ['user' => $user]));
+        authLogin($user);   // chi ha scelto la password resta dentro, senza doverla scrivere subito
+        jsonOut(['ok' => true]);
+    }
+
+    // M3. ESCI: il login di questo browser viene cancellato (anche sul server)
+    case 'logout': {
+        authLogout();
         jsonOut(['ok' => true]);
     }
 

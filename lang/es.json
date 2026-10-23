@@ -633,5 +633,12 @@
  "ver.mode_full": "Texto completo",
  "ver.same_lines": "… {n} líneas iguales",
  "nav.back": "Atrás",
- "nav.forward": "Adelante"
+ "nav.forward": "Adelante",
+ "auth.login_title": "Iniciar sesión",
+ "auth.login_btn": "Entrar",
+ "auth.login_failed": "Usuario o contraseña incorrectos.",
+ "auth.login_note": "La sesión sigue abierta en este navegador hasta que la cierres.",
+ "auth.logout": "Salir",
+ "auth.logout_title": "Cerrar sesión ({user})",
+ "auth.logout_dirty": "Algunas pestañas tienen cambios sin guardar. ¿Salir de todos modos?"
 }

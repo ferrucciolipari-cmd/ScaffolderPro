@@ -633,5 +633,12 @@
  "ver.mode_full": "Celý text",
  "ver.same_lines": "… {n} nezměněných řádků",
  "nav.back": "Zpět",
- "nav.forward": "Vpřed"
+ "nav.forward": "Vpřed",
+ "auth.login_title": "Přihlášení",
+ "auth.login_btn": "Přihlásit",
+ "auth.login_failed": "Nesprávné uživatelské jméno nebo heslo.",
+ "auth.login_note": "V tomto prohlížeči zůstanete přihlášeni, dokud se neodhlásíte.",
+ "auth.logout": "Odhlásit",
+ "auth.logout_title": "Odhlásit ({user})",
+ "auth.logout_dirty": "Některé karty mají neuložené změny. Přesto se odhlásit?"
 }

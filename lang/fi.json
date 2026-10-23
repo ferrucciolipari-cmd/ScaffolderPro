@@ -633,5 +633,12 @@
  "ver.mode_full": "Koko teksti",
  "ver.same_lines": "… {n} muuttumatonta riviä",
  "nav.back": "Takaisin",
- "nav.forward": "Eteenpäin"
+ "nav.forward": "Eteenpäin",
+ "auth.login_title": "Kirjaudu",
+ "auth.login_btn": "Kirjaudu sisään",
+ "auth.login_failed": "Väärä käyttäjänimi tai salasana.",
+ "auth.login_note": "Pysyt kirjautuneena tässä selaimessa, kunnes kirjaudut ulos.",
+ "auth.logout": "Kirjaudu ulos",
+ "auth.logout_title": "Kirjaudu ulos ({user})",
+ "auth.logout_dirty": "Joissakin välilehdissä on tallentamattomia muutoksia. Kirjaudutaanko silti ulos?"
 }

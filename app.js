@@ -69,9 +69,15 @@ function humanSize(b) {
     return (b / 1073741824).toFixed(2) + ' GB';
 }
 
+/** Login scaduto o uscita da un'altra scheda: la pagina si ricarica e mostra il login. */
+function jsonOrLogin(r) {
+    if (r.status === 401) { location.reload(); return new Promise(() => {}); }
+    return r.json();
+}
+
 function apiGet(action, params = {}) {
     const qs = new URLSearchParams({ action, ...params });
-    return fetch('api.php?' + qs, { headers: { 'Accept': 'application/json' } }).then(r => r.json());
+    return fetch('api.php?' + qs, { headers: { 'Accept': 'application/json' } }).then(jsonOrLogin);
 }
 
 // Invia un'azione a api.php includendo sempre il token CSRF.
@@ -86,7 +92,7 @@ function apiPost(fields) {
         method: 'POST',
         body,
         headers: { 'Accept': 'application/json', 'X-CSRF-Token': APP.csrf }
-    }).then(r => r.json());
+    }).then(jsonOrLogin);
 }
 
 function toast(msg, type = 'ok') {
@@ -149,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuickOpen();
     initNavHistory();
     initSetupAuth();
+    initLogout();
 
     $('#rootName').textContent = baseName(APP.rootDir) || APP.rootDir;
     $('#welcomeRoot').textContent = L('js.working_root', { path: APP.rootDir });
@@ -227,9 +234,12 @@ function initRootSelect() {
     const picker = $('#rootPicker'), trigger = $('#rootTrigger'), dropdown = $('#rootDropdown');
     const input = $('#rootSearchInput'), clearBtn = $('#rootSearchClear'), list = $('#rootList');
 
-    const close = () => { dropdown.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
+    const overlay = $('#rootOverlay');
+    const close = () => { dropdown.hidden = true; overlay.hidden = true; picker.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); };
     const open = () => {
         dropdown.hidden = false;
+        overlay.hidden = false;
+        picker.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
         anim.pop(dropdown);
         input.value = rootPicker.query;
@@ -239,6 +249,8 @@ function initRootSelect() {
     };
     trigger.addEventListener('click', (e) => { e.stopPropagation(); dropdown.hidden ? open() : close(); });
     document.addEventListener('click', (e) => { if (!dropdown.hidden && !picker.contains(e.target)) close(); });
+    overlay.addEventListener('click', close);
+    $('#rootClose').addEventListener('click', (e) => { e.stopPropagation(); close(); trigger.focus(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !dropdown.hidden) { e.stopPropagation(); close(); trigger.focus(); } }, true);
 
     input.addEventListener('input', () => {
@@ -1443,8 +1455,9 @@ function updateTopbar() {
     $('#saveBtn').disabled = !tab.writable;
     $('#zoomControls').hidden = !isCode;
     $('#previewBtn').disabled = !APP.publicUrl;
-    $('#previewBtn').title = APP.publicUrl ? L('ed.preview_window') : L('js.root_not_docroot');
+    $('#previewBtn').title = APP.publicUrl ? '' : L('js.root_not_docroot');
     $('#splitBtn').hidden = !APP.publicUrl;
+    $('#deleteBtn').disabled = !tab.writable;
     updateSaveStatus(tab);
 }
 
@@ -1543,17 +1556,43 @@ function initTopbar() {
     $$('[data-zoom]').forEach(b => b.addEventListener('click', () => applyEditorZoom(currentZoom + parseInt(b.dataset.zoom, 10))));
     $('#zoomLabel').addEventListener('click', () => applyEditorZoom(parseInt(APP.config.editor_font, 10) || 14));
     $('#saveBtn').addEventListener('click', saveActive);
-    $('#deleteBtn').addEventListener('click', () => state.active && deletePaths([state.active]));
-    $('#downloadBtn').addEventListener('click', () => state.active && downloadPath(state.active));
-    $('#previewBtn').addEventListener('click', () => state.active && openPreviewWindow(state.active));
-    $('#splitBtn').addEventListener('click', () => {
-        state.split = !state.split;
-        $('#splitBtn').classList.toggle('on', state.split);
-        $('#workspaceGrid').classList.toggle('split', state.split);
-        $('#previewFrame').hidden = !state.split;
-        if (state.split) refreshSplit();
-        if (editor) setTimeout(() => editor.resize(), 50);
+    // Menu ☰ della barra dell'editor: anteprima, anteprima affiancata, scarica, elimina
+    const menuBtn = $('#editorMenuBtn'), menu = $('#editorMenu');
+    const closeMenu = () => { menu.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.classList.remove('on'); };
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!menu.hidden) { closeMenu(); return; }
+        menu.hidden = false;
+        const r = menuBtn.getBoundingClientRect();
+        menu.style.top = (r.bottom + 6) + 'px';
+        menu.style.left = Math.max(8, Math.min(r.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - 8)) + 'px';
+        menuBtn.setAttribute('aria-expanded', 'true');
+        menuBtn.classList.add('on');
+        anim.pop(menu);
     });
+    document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e.target)) closeMenu(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) closeMenu(); });
+    window.addEventListener('resize', closeMenu);
+    $$('[data-ed]', menu).forEach(b => b.addEventListener('click', () => {
+        closeMenu();
+        if (!state.active) return;
+        switch (b.dataset.ed) {
+            case 'preview': openPreviewWindow(state.active); break;
+            case 'split': toggleSplit(); break;
+            case 'download': downloadPath(state.active); break;
+            case 'delete': deletePaths([state.active]); break;
+        }
+    }));
+}
+
+function toggleSplit() {
+    state.split = !state.split;
+    $('#splitBtn').classList.toggle('on', state.split);
+    $('#splitBtn').setAttribute('aria-checked', String(state.split));
+    $('#workspaceGrid').classList.toggle('split', state.split);
+    $('#previewFrame').hidden = !state.split;
+    if (state.split) refreshSplit();
+    if (editor) setTimeout(() => editor.resize(), 50);
 }
 
 function refreshSplit() {
@@ -2083,6 +2122,20 @@ function initSettings() {
     });
 }
 
+// Esci: il login di questo browser viene cancellato; la pagina torna al modulo di accesso
+function initLogout() {
+    const btn = $('#logoutBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        if (anyDirty() && !confirm(L('auth.logout_dirty'))) return;
+        if (transfer.running) { toast(L('tr.busy'), 'warn'); return; }
+        apiPost({ action: 'logout' }).then(() => {
+            state.tabs.forEach(t => { if (t.session) t.saved = t.session.getValue(); });   // niente avviso "modifiche non salvate"
+            location.reload();
+        }).catch(err => toast(L('js.network_error') + ': ' + err, 'error'));
+    });
+}
+
 // Primo avvio senza password: utente e password creati dall'avviso rosso (scritti in .htpasswd dal server)
 function initSetupAuth() {
     const btn = $('#setupAuthBtn');
@@ -2319,6 +2372,7 @@ function xhrPost(fd, onProgress) {
         if (onProgress) xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
         xhr.onload = () => {
             transfer.xhr = null;
+            if (xhr.status === 401) { location.reload(); return; }
             try { resolve(JSON.parse(xhr.responseText)); }
             catch (e) { resolve({ ok: false, net: xhr.status >= 500 || xhr.status === 0, error: L('tr.bad_response', { status: xhr.status }) }); }
         };

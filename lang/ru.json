@@ -633,5 +633,12 @@
  "ver.mode_full": "Полный текст",
  "ver.same_lines": "… строк без изменений: {n}",
  "nav.back": "Назад",
- "nav.forward": "Вперёд"
+ "nav.forward": "Вперёд",
+ "auth.login_title": "Вход",
+ "auth.login_btn": "Войти",
+ "auth.login_failed": "Неверное имя пользователя или пароль.",
+ "auth.login_note": "Вы остаётесь в системе в этом браузере, пока не выйдете.",
+ "auth.logout": "Выйти",
+ "auth.logout_title": "Выйти ({user})",
+ "auth.logout_dirty": "В некоторых вкладках есть несохранённые изменения. Всё равно выйти?"
 }

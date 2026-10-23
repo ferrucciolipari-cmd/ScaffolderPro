@@ -633,5 +633,12 @@
  "ver.mode_full": "Tam metin",
  "ver.same_lines": "… {n} değişmemiş satır",
  "nav.back": "Geri git",
- "nav.forward": "İleri git"
+ "nav.forward": "İleri git",
+ "auth.login_title": "Giriş yap",
+ "auth.login_btn": "Giriş yap",
+ "auth.login_failed": "Kullanıcı adı veya parola yanlış.",
+ "auth.login_note": "Çıkış yapana kadar bu tarayıcıda oturumun açık kalır.",
+ "auth.logout": "Çıkış",
+ "auth.logout_title": "Çıkış yap ({user})",
+ "auth.logout_dirty": "Bazı sekmelerde kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?"
 }

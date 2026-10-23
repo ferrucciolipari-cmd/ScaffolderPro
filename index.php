@@ -68,6 +68,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="13" rx="5"/><path d="M12 11v9M9 4.5l1.5 2.5M15 4.5 13.5 7M3.5 13H7M17 13h3.5M4.5 8.5 7.5 10M19.5 8.5 16.5 10M4.5 18.5l3-1.5M19.5 18.5l-3-1.5"/></symbol>
         <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
         <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+        <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
         <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
         <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
     </defs>
@@ -77,7 +78,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <div class="brand"><?= ic('bolt') ?> <span class="brand-name"><span class="b-main">Scaffolder</span> <span class="b-pro">Pro</span></span></div>
 
     <div class="toolbar">
-        <!-- Selettore della root: cartelle dello spazio web con ricerca e permessi -->
+        <!-- Selettore della root: cartelle dello spazio web con ricerca e permessi (sotto, un velo che lo chiude) -->
+        <div class="root-overlay" id="rootOverlay" hidden></div>
         <div class="root-picker" id="rootPicker">
             <button type="button" class="root-trigger" id="rootTrigger" aria-haspopup="listbox" aria-expanded="false" title="<?= tx('hdr.root_title') ?>">
                 <span class="root-label"><?= tx('hdr.root') ?></span>
@@ -89,7 +91,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                 <div class="root-search-bar">
                     <?= ic('search') ?>
                     <input type="text" id="rootSearchInput" placeholder="<?= tx('rp.search_ph') ?>" autocomplete="off" spellcheck="false">
-                    <button type="button" id="rootSearchClear" class="icon-btn" hidden title="<?= tx('common.clear') ?>"><?= ic('x') ?></button>
+                    <button type="button" id="rootSearchClear" class="link-btn" hidden><?= tx('common.clear') ?></button>
+                    <button type="button" id="rootClose" class="icon-btn" title="<?= tx('common.close') ?> (Esc)"><?= ic('x') ?></button>
                 </div>
                 <div class="root-filters">
                     <div class="seg" id="rootFilterMode">
@@ -112,6 +115,9 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         </div>
 
         <button type="button" class="user-btn" id="settingsBtn" title="<?= tx('hdr.settings') ?>"><?= flagSvg(LANGUAGES[uiLang()][2]) ?><?= ic('user') ?></button>
+        <?php if (AUTH_ENABLED): ?>
+        <button type="button" class="user-btn logout-btn" id="logoutBtn" title="<?= tx('auth.logout_title', ['user' => $authUser]) ?>"><?= ic('logout') ?><span><?= tx('auth.logout') ?></span></button>
+        <?php endif; ?>
     </div>
 </header>
 
@@ -216,12 +222,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                         <button type="button" class="tb-btn" data-zoom="1" title="<?= tx('ed.zoom_in') ?>"><?= ic('plus') ?></button>
                     </span>
                     <span class="tb-sep"></span>
-                    <button type="button" class="tb-btn" id="previewBtn" title="<?= tx('ed.preview_window') ?>"><?= ic('external') ?></button>
-                    <button type="button" class="tb-btn" id="splitBtn" title="<?= tx('ed.preview_split') ?>"><?= ic('split') ?></button>
-                    <button type="button" class="tb-btn" id="downloadBtn" title="<?= tx('ed.download_file') ?>"><?= ic('download') ?></button>
-                    <button type="button" class="tb-btn danger" id="deleteBtn" title="<?= tx('ed.delete_file') ?>"><?= ic('trash') ?></button>
-                    <span class="tb-sep"></span>
                     <button type="button" class="tb-btn save" id="saveBtn" title="<?= tx('ed.save_title') ?>"><?= ic('save') ?><span><?= tx('common.save') ?></span></button>
+                    <button type="button" class="tb-btn" id="editorMenuBtn" title="<?= tx('common.more_actions') ?>" aria-haspopup="menu" aria-expanded="false"><?= ic('menu') ?></button>
                 </div>
             </div>
 
@@ -417,6 +419,15 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <div class="ctx-sep"></div>
     <button type="button" class="ctx-item" data-act="quick-open" role="menuitem"><?= ic('search') ?> <?= tx('qo.title') ?> <kbd>⌘P</kbd></button>
     <button type="button" class="ctx-item" data-act="collapse" role="menuitem"><?= ic('collapse') ?> <?= tx('menu.collapse_all') ?></button>
+</div>
+
+<!-- Menu ☰ della barra dell'editor: azioni sul file aperto -->
+<div id="editorMenu" class="ctx-menu dropdown" role="menu" hidden>
+    <button type="button" class="ctx-item" data-ed="preview" id="previewBtn" role="menuitem"><?= ic('external') ?><span><?= tx('ed.preview_window') ?></span></button>
+    <button type="button" class="ctx-item" data-ed="split" id="splitBtn" role="menuitemcheckbox" aria-checked="false"><?= ic('split') ?><span><?= tx('ed.preview_split') ?></span><span class="ctx-check"><?= ic('check') ?></span></button>
+    <button type="button" class="ctx-item" data-ed="download" id="downloadBtn" role="menuitem"><?= ic('download') ?><span><?= tx('ed.download_file') ?></span></button>
+    <div class="ctx-sep"></div>
+    <button type="button" class="ctx-item danger" data-ed="delete" id="deleteBtn" role="menuitem"><?= ic('trash') ?><span><?= tx('ed.delete_file') ?></span></button>
 </div>
 
 <!-- Menu della card Errori PHP -->

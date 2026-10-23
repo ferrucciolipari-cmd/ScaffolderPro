@@ -633,5 +633,12 @@
  "ver.mode_full": "Pełny tekst",
  "ver.same_lines": "… {n} niezmienionych wierszy",
  "nav.back": "Wstecz",
- "nav.forward": "Dalej"
+ "nav.forward": "Dalej",
+ "auth.login_title": "Logowanie",
+ "auth.login_btn": "Zaloguj",
+ "auth.login_failed": "Nieprawidłowa nazwa użytkownika lub hasło.",
+ "auth.login_note": "Pozostajesz zalogowany w tej przeglądarce, dopóki się nie wylogujesz.",
+ "auth.logout": "Wyloguj",
+ "auth.logout_title": "Wyloguj ({user})",
+ "auth.logout_dirty": "Niektóre karty mają niezapisane zmiany. Wylogować mimo to?"
 }

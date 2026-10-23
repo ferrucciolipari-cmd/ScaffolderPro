@@ -633,5 +633,12 @@
  "ver.mode_full": "पूरा टेक्स्ट",
  "ver.same_lines": "… {n} अपरिवर्तित पंक्तियाँ",
  "nav.back": "पीछे जाएँ",
- "nav.forward": "आगे जाएँ"
+ "nav.forward": "आगे जाएँ",
+ "auth.login_title": "साइन इन",
+ "auth.login_btn": "साइन इन करें",
+ "auth.login_failed": "उपयोगकर्ता नाम या पासवर्ड गलत है।",
+ "auth.login_note": "साइन आउट करने तक आप इस ब्राउज़र में साइन इन रहेंगे।",
+ "auth.logout": "साइन आउट",
+ "auth.logout_title": "साइन आउट ({user})",
+ "auth.logout_dirty": "कुछ टैब में बिना सहेजे बदलाव हैं। फिर भी साइन आउट करें?"
 }

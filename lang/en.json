@@ -633,5 +633,12 @@
  "ver.mode_full": "Full text",
  "ver.same_lines": "… {n} unchanged lines",
  "nav.back": "Go back",
- "nav.forward": "Go forward"
+ "nav.forward": "Go forward",
+ "auth.login_title": "Sign in",
+ "auth.login_btn": "Sign in",
+ "auth.login_failed": "Wrong user name or password.",
+ "auth.login_note": "You stay signed in on this browser until you sign out.",
+ "auth.logout": "Sign out",
+ "auth.logout_title": "Sign out ({user})",
+ "auth.logout_dirty": "Some tabs have unsaved changes. Sign out anyway?"
 }

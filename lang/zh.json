@@ -633,5 +633,12 @@
  "ver.mode_full": "全文",
  "ver.same_lines": "… {n} 行未更改",
  "nav.back": "后退",
- "nav.forward": "前进"
+ "nav.forward": "前进",
+ "auth.login_title": "登录",
+ "auth.login_btn": "登录",
+ "auth.login_failed": "用户名或密码错误。",
+ "auth.login_note": "在你退出之前，此浏览器会一直保持登录。",
+ "auth.logout": "退出",
+ "auth.logout_title": "退出登录（{user}）",
+ "auth.logout_dirty": "有些标签页有未保存的修改。仍要退出吗？"
 }

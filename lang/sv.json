@@ -633,5 +633,12 @@
  "ver.mode_full": "Hela texten",
  "ver.same_lines": "… {n} oförändrade rader",
  "nav.back": "Bakåt",
- "nav.forward": "Framåt"
+ "nav.forward": "Framåt",
+ "auth.login_title": "Logga in",
+ "auth.login_btn": "Logga in",
+ "auth.login_failed": "Fel användarnamn eller lösenord.",
+ "auth.login_note": "Du förblir inloggad i den här webbläsaren tills du loggar ut.",
+ "auth.logout": "Logga ut",
+ "auth.logout_title": "Logga ut ({user})",
+ "auth.logout_dirty": "Vissa flikar har osparade ändringar. Logga ut ändå?"
 }
