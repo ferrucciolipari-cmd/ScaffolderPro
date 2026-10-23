@@ -1722,3 +1722,7 @@ dialog.modal.framed .modal-head { flex: 0 0 auto; }
 dialog.modal.framed .modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0 -16px; padding: 2px 16px 8px; }
 dialog.modal.framed .modal-foot { flex: 0 0 auto; margin: 0 -16px -16px; padding: 10px 16px 14px; border-top: 1px solid #333; background: inherit; border-radius: 0 0 10px 10px; }
 @media (max-width: 760px) { dialog.modal.framed { max-height: calc(100dvh - 12px); } }
+
+/* Niente barre di scorrimento dentro le finestre: si scorre lo stesso (rotellina, trackpad, dito, tastiera) */
+dialog.modal, dialog.modal * { scrollbar-width: none; }
+dialog.modal::-webkit-scrollbar, dialog.modal *::-webkit-scrollbar { display: none; width: 0; height: 0; }
