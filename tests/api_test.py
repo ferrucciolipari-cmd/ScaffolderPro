@@ -140,8 +140,12 @@ check('sovrascrittura confermata', r.get('ok'), r)
 f = me.get('get_file', file='inc/config.php')
 r = me.post({'action': 'save_file', 'filepath': 'inc/config.php', 'code': f['content'] + "$b = 2;\n", 'mtime': 1, 'base_crc': str(zlib.crc32(f['content'].encode()))})
 check('mtime vecchio ma stesso contenuto: nessun conflitto', r.get('ok'), r)
-r = me.post({'action': 'save_file', 'filepath': 'inc/config.php', 'code': "<?php\nfunction (\n"})
-check('PHP con errore di sintassi non salvato', not r.get('ok') and r.get('lint', {}).get('line'), r)
+f = me.get('get_file', file='inc/config.php')
+r = me.post({'action': 'save_file', 'filepath': 'inc/config.php', 'code': "<?php\nfunction (\n", 'mtime': f['mtime'], 'base_crc': str(zlib.crc32(f['content'].encode()))})
+check('PHP con errore di sintassi: salvato comunque e segnalato', r.get('ok') and r.get('lint', {}).get('line', 0) >= 2
+      and open(os.path.join(SITE, 'inc/config.php')).read() == "<?php\nfunction (\n", r)
+r = me.post({'action': 'save_file', 'filepath': 'inc/config.php', 'code': "<?php\n$a = 9;\n", 'mtime': r.get('mtime', 0)})
+check('corretto → nessun errore segnalato', r.get('ok') and not r.get('lint'), r)
 
 # ---------------------------------------------------------------------------
 section('Duplica')

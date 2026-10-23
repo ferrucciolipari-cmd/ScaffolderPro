@@ -1623,27 +1623,20 @@ function saveActive({ force = false, overwriteDisk = false, formatted = false } 
             else if (confirm(L('js.conflict_reload_q'))) apiGet('get_file', { file: tab.path }).then(f => { if (f.ok) { setTabFromDisk(tab, f); updateTopbar(); updateSaveStatus(tab, L('js.reloaded_disk'), 'ok'); } });
             return;
         }
-        if (!res.ok && res.lint) {
-            // Errore di sintassi PHP: riga segnata, avviso in alto e scelta "Salva comunque" / "Annulla"
-            tab.saveBlocked = res.lint;
-            setLintMarks(tab, res.lint);
-            updateSaveStatus(tab, L('js.unsaved_syntax'), 'error');
-            if (tab.path === state.active) showLintNotice(tab, res.lint, res.server_php);
-            return;
-        }
         if (!res.ok) { updateSaveStatus(tab, res.error, 'error'); toast(res.error, 'error'); return; }
-        tab.saveBlocked = null;
-        tab.claudePending = false;
-        if (force) toast(L('js.saved_despite'), 'warn');
-        else setLintMarks(tab, null);
-        hideLintNotice();
+        // Salvato sempre; un errore di sintassi PHP resta segnato (riga rossa e avviso) finché non si corregge
+        tab.saveBlocked = res.lint || null;
+        setLintMarks(tab, res.lint || null);
+        if (res.lint && tab.path === state.active) showLintNotice(tab, res.lint, res.server_php);
+        else hideLintNotice();
         tab.saved = code;
         tab.size = new Blob([code]).size;
         if (res.mtime) tab.mtime = res.mtime;
         markTabDirty(tab);
         if (tab.path === state.active) {
             updateTopbar();
-            updateSaveStatus(tab, res.unchanged ? L('js.no_changes') : L('js.saved_at', { time: res.saved_at }), 'ok');
+            if (res.lint) updateSaveStatus(tab, L('js.saved_with_error', { time: res.saved_at, line: res.lint.line }), 'error');
+            else updateSaveStatus(tab, res.unchanged ? L('js.no_changes') : L('js.saved_at', { time: res.saved_at }), 'ok');
             anim.press($('#saveBtn'));
         }
         if (!res.unchanged) {
@@ -4454,17 +4447,15 @@ function showLintNotice(tab, lint, serverPhp) {
     n.className = 'notice error lint-notice';
     n.dataset.lint = '1';
     const other = serverPhp && serverPhp !== lint.php ? ' ' + esc(L('lint.site_php', { v: serverPhp })) : '';
-    n.innerHTML = `<div>${ic('alert')} <b>${esc(L('api.syntax_error_line', { line: +lint.line }))}</b>: ${esc(lint.message)}<br>`
-        + `<small>${esc(L('lint.checked_with', { v: lint.php, method: lint.method }))}${other} ${esc(L('lint.consequence'))}</small></div>`
+    n.innerHTML = `<div>${ic('alert')} <b>${esc(L('lint.saved_with_error', { line: +lint.line }))}</b>: ${esc(lint.message)}<br>`
+        + `<small>${esc(L('lint.checked_with', { v: lint.php, method: lint.method }))}${other} ${esc(L('lint.saved_consequence'))}</small></div>`
         + `<div class="hrow"><button type="button" class="sbtn" data-lint="goto">${esc(L('lint.goto'))}</button>`
-        + `<button type="button" class="sbtn" data-lint="cancel">${esc(L('common.cancel'))}</button>`
-        + `<button type="button" class="pbtn warn" data-lint="force">${esc(L('lint.save_anyway'))}</button></div>`;
+        + `<button type="button" class="sbtn" data-lint="cancel">${esc(L('common.close'))}</button></div>`;
     n.onclick = (e) => {
         const b = e.target.closest('[data-lint]');
         if (!b) return;
         if (b.dataset.lint === 'goto' && editor) { editor.gotoLine(lint.line, 0, true); editor.scrollToLine(lint.line - 1, true, true, () => {}); focusSoft(editor); }
-        if (b.dataset.lint === 'cancel') { tab.saveBlocked = null; hideLintNotice(); updateSaveStatus(tab); }
-        if (b.dataset.lint === 'force') saveActive({ force: true });
+        if (b.dataset.lint === 'cancel') { tab.saveBlocked = null; hideLintNotice(); }
     };
 }
 

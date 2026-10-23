@@ -16,7 +16,7 @@ No package installations, no build: just copy the folder and open it in the brow
 - **Minimap** beside the editor and **Go to symbol** (⇧⌘O / Ctrl+Shift+O): functions, classes, methods, CSS selectors, headings and ids of the open file.
 - **Dark, light or system theme** (Settings → Interface).
 - **Find and replace** in the content of all files (⌘⇧F / Ctrl+Shift+F), with regular expressions.
-- **PHP syntax check** before saving: no more blank pages or 500 Error for a forgotten bracket.
+- **PHP syntax check** when saving: the file is always saved, and a forgotten bracket is flagged right away (line in red) before it turns into a blank page or Error 500.
 - **Site PHP errors** in a panel, with a click to open the file at the correct line.
 - **Versions** of each file and **trash bin**: every save keeps the previous version; each version opens as a diff with the current text.
 - **Large uploads** (1 GB and more) without touching the server configuration: big files travel in small chunks, with progress, speed, pause/resume, automatic retries and resume after an interruption. Large ZIP files are extracted in steps.

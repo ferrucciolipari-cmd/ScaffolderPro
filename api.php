@@ -358,11 +358,8 @@ switch ($action) {
             jsonOut(['ok' => false, 'conflict' => true, 'mtime' => $diskMtime, 'disk_time' => date('Y-m-d H:i:s', $diskMtime),
                      'error' => t('api.save_conflict', ['time' => date('H:i:s', $diskMtime)])]);
         }
-        // Un .php con errori di sintassi manda il sito in errore 500: si salva solo se l'utente conferma (force=1)
-        if (isPhpFile($fileToSave) && !empty(loadConfig()['php_lint']) && ($_POST['force'] ?? '0') !== '1'
-            && ($lint = phpLint($new, $fileToSave))) {
-            jsonOut(['ok' => false, 'error' => t('api.syntax_error_line', ['line' => $lint['line']]), 'lint' => $lint, 'server_php' => PHP_VERSION]);
-        }
+        // Il file si salva sempre; un .php con errori di sintassi viene solo segnalato (la riga torna al browser)
+        $lint = isPhpFile($fileToSave) && !empty(loadConfig()['php_lint']) ? phpLint($new, $fileToSave) : null;
         if (@file_put_contents($fullPath, $new) === false) {
             addLog('error', t('api.cannot_write', ['path' => $fileToSave]));
             fail(t('api.cannot_write', ['path' => $fileToSave]));
@@ -371,10 +368,10 @@ switch ($action) {
         $reason = ($_POST['reason'] ?? '') === 'claude' ? 'claude' : 'save';
         saveVersion($fileToSave, $old, $reason);
         addLog('save', t($reason === 'claude' ? 'log.saved_claude' : 'log.saved', ['path' => $fileToSave])
-            . (($_POST['force'] ?? '0') === '1' && isPhpFile($fileToSave) ? ' — ' . t('log.saved_despite_error') : '')
+            . ($lint ? ' — ' . t('log.saved_with_error', ['line' => $lint['line']]) : '')
             . (($_POST['force_mtime'] ?? '0') === '1' ? ' — ' . t('log.saved_over_disk') : ''));
         clearstatcache(true, $fullPath);
-        jsonOut(['ok' => true, 'saved_at' => date('H:i:s'), 'mtime' => (int)@filemtime($fullPath)]);
+        jsonOut(['ok' => true, 'saved_at' => date('H:i:s'), 'mtime' => (int)@filemtime($fullPath), 'lint' => $lint, 'server_php' => PHP_VERSION]);
     }
 
     // E2. CONTROLLO DELLA SINTASSI PHP (mentre si scrive: solo annotazioni nell'editor)
