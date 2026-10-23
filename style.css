@@ -2281,3 +2281,12 @@ fieldset legend .ic { width: 13px; height: 13px; vertical-align: -2px; }
 .sec-device-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sec-content .sbtn .ic { width: 13px; height: 13px; vertical-align: -2px; }
 .sec-device-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+/* A capo automatico (accanto allo zoom): acceso = righe adattate alla finestra */
+.zoom-controls .wrap-btn { margin-left: 4px; }
+.tb-btn.wrap-btn.on { background: var(--c-007acc-20); color: var(--c-4fc1ff); }
+.tb-btn.wrap-btn.on:hover { background: var(--c-007acc-28); }
+
+/* Vai alla riga */
+#gotoLineDialog .qo-input input { font-variant-numeric: tabular-nums; }
+#gotoLineHint.err { color: var(--c-f48771); }

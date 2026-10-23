@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Diğer tüm cihazlardan çıkış yap",
  "sec.no_devices": "Başka cihaz yok.",
  "sec.others_q": "Diğer tüm cihazlardan çıkış yapılsın mı? Yeniden giriş yapmaları gerekecek.",
- "sec.copied": "Kopyalandı."
+ "sec.copied": "Kopyalandı.",
+ "ed.goto_line": "Satıra git…",
+ "gl.placeholder": "Satır numarası (1–{n}) veya satır:sütun",
+ "gl.current": "Satır {row} / {n}",
+ "gl.invalid": "1 ile {n} arasında bir satır numarası yaz.",
+ "ed.wrap_on": "Satır kaydırma açık: satırlar pencereye sığar (orijinal satır sonlarını korumak için tıkla)",
+ "ed.wrap_off": "Orijinal satır sonları: uzun satırlar yatay kayar (kaydırmak için tıkla)"
 }

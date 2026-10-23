@@ -1560,6 +1560,8 @@ function updateTopbar() {
     $('#deleteBtn').disabled = !tab.writable;
     $('#formatBtn').disabled = !isCode || !tab.writable || !formatterFor(tab.path);
     $('#symbolsBtn').disabled = !isCode;
+    $('#gotoLineBtn').disabled = !isCode;
+    updateWrapButton();
     $('#minimapBtn').hidden = !isCode;
     $('#minimapBtn').classList.toggle('on', !!APP.config.minimap);
     $('#minimapBtn').setAttribute('aria-checked', String(!!APP.config.minimap));
@@ -1689,6 +1691,7 @@ function initTopbar() {
         if (!state.active) return;
         switch (b.dataset.ed) {
             case 'format': formatTab(tabFor(state.active)); break;
+            case 'gotoline': openGotoLine(); break;
             case 'symbols': openSymbols(); break;
             case 'minimap':
                 APP.config.minimap = !APP.config.minimap;
@@ -4235,10 +4238,71 @@ function initSymbols() {
     $('#symList').addEventListener('click', (e) => { const r = e.target.closest('.qo-item'); if (r) pickSymbol(+r.dataset.i); });
 }
 
+// ----------------------------------------------------------------------------
+// VAI ALLA RIGA (⌃G, come VS Code): "120" oppure "120:5" (riga:colonna)
+// ----------------------------------------------------------------------------
+function openGotoLine() {
+    const tab = tabFor(state.active);
+    if (!tab || tab.kind !== 'code' || !tab.session || !editor) return;
+    const n = tab.session.getLength();
+    const input = $('#gotoLineInput');
+    input.value = '';
+    input.placeholder = L('gl.placeholder', { n });
+    $('#gotoLineHint').textContent = L('gl.current', { row: editor.getCursorPosition().row + 1, n });
+    $('#gotoLineHint').classList.remove('err');
+    showModal($('#gotoLineDialog'));
+    focusSoft(input);
+}
+
+function initGotoLine() {
+    const input = $('#gotoLineInput');
+    input.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const tab = tabFor(state.active);
+        if (!tab || !tab.session) return;
+        const n = tab.session.getLength();
+        const m = input.value.trim().match(/^(\d+)(?:\s*[:,.]\s*(\d+))?$/);
+        if (!m || +m[1] < 1) {
+            $('#gotoLineHint').textContent = L('gl.invalid', { n });
+            $('#gotoLineHint').classList.add('err');
+            input.select();
+            return;
+        }
+        const line = Math.min(n, +m[1]);
+        const col = m[2] ? Math.max(0, Math.min(tab.session.getLine(line - 1).length, +m[2] - 1)) : 0;
+        $('#gotoLineDialog').close();
+        gotoInEditor(state.active, line, col, 0);
+    });
+}
+
+// ----------------------------------------------------------------------------
+// A CAPO AUTOMATICO (pulsante accanto allo zoom): righe adattate alla finestra oppure a capo originali
+// con scorrimento orizzontale. Stessa impostazione di Impostazioni → Interfaccia (editor_wrap).
+// ----------------------------------------------------------------------------
+function updateWrapButton() {
+    const b = $('#wrapBtn');
+    if (!b) return;
+    const on = !!APP.config.editor_wrap;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+    b.title = L(on ? 'ed.wrap_on' : 'ed.wrap_off');
+}
+
+function toggleWrap() {
+    APP.config.editor_wrap = !APP.config.editor_wrap;
+    state.tabs.forEach(t => t.session && t.session.setUseWrapMode(!!APP.config.editor_wrap));
+    updateWrapButton();
+    scheduleMinimap();
+    apiPost({ action: 'save_settings', settings: { editor_wrap: APP.config.editor_wrap } }).then(r => { if (r.ok) APP.config = r.config; });
+}
+
 /** Comandi dell'editor (anche con il focus fuori da Ace), etichette dei tasti per Mac / Windows-Linux. */
 function initEditorTools() {
     if (editor) {
         editor.commands.addCommand({ name: 'formatDocument', bindKey: { win: 'Shift-Alt-F', mac: 'Shift-Alt-F' }, exec: () => { formatTab(tabFor(state.active)); } });
+        // Stesso nome del comando di Ace (⌘L / Ctrl+L): anche quello apre la nostra finestra
+        editor.commands.addCommand({ name: 'gotoline', bindKey: { win: 'Ctrl-G|Ctrl-L', mac: 'Ctrl-G|Command-L' }, exec: () => openGotoLine() });
         editor.commands.addCommand({ name: 'goToSymbol', bindKey: { win: 'Ctrl-Shift-O', mac: 'Command-Shift-O' }, exec: () => openSymbols() });
         editor.commands.addCommand({ name: 'emmetExpand', bindKey: { win: 'Tab', mac: 'Tab' }, exec: (ed) => emmetExpand(ed) });
         // Con la tendina dei suggerimenti aperta Tab sceglierebbe il suggerimento: un'abbreviazione con operatori
@@ -4256,11 +4320,16 @@ function initEditorTools() {
     }
     $('#formatBtn kbd').textContent = IS_MAC ? '⇧⌥F' : 'Shift+Alt+F';
     $('#symbolsBtn kbd').textContent = IS_MAC ? '⇧⌘O' : 'Ctrl+Shift+O';
+    $('#gotoLineBtn kbd').textContent = IS_MAC ? '⌃G' : 'Ctrl+G';
+    $('#wrapBtn').addEventListener('click', toggleWrap);
+    updateWrapButton();
+    initGotoLine();
     document.addEventListener('keydown', (e) => {
         if ($$('dialog[open]').length) return;
         const mod = e.metaKey || e.ctrlKey;
         if (e.shiftKey && e.altKey && !mod && e.code === 'KeyF') { e.preventDefault(); formatTab(tabFor(state.active)); }
         else if (mod && e.shiftKey && !e.altKey && e.code === 'KeyO') { e.preventDefault(); openSymbols(); }
+        else if (e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.code === 'KeyG') { e.preventDefault(); openGotoLine(); }
     });
     initSymbols();
 }

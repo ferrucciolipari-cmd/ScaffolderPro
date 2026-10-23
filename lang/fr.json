@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Déconnecter tous les autres appareils",
  "sec.no_devices": "Aucun autre appareil.",
  "sec.others_q": "Déconnecter tous les autres appareils ? Ils devront se reconnecter.",
- "sec.copied": "Copié."
+ "sec.copied": "Copié.",
+ "ed.goto_line": "Aller à la ligne…",
+ "gl.placeholder": "Numéro de ligne (1–{n}), ou ligne:colonne",
+ "gl.current": "Ligne {row} sur {n}",
+ "gl.invalid": "Saisissez un numéro de ligne entre 1 et {n}.",
+ "ed.wrap_on": "Retour à la ligne : les lignes s'adaptent à la fenêtre (clic pour garder les retours d'origine)",
+ "ed.wrap_off": "Retours d'origine : les longues lignes défilent horizontalement (clic pour les renvoyer à la ligne)"
 }

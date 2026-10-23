@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Logga ut från alla andra enheter",
  "sec.no_devices": "Inga andra enheter.",
  "sec.others_q": "Logga ut från alla andra enheter? De måste logga in igen.",
- "sec.copied": "Kopierat."
+ "sec.copied": "Kopierat.",
+ "ed.goto_line": "Gå till rad…",
+ "gl.placeholder": "Radnummer (1–{n}), eller rad:kolumn",
+ "gl.current": "Rad {row} av {n}",
+ "gl.invalid": "Skriv ett radnummer mellan 1 och {n}.",
+ "ed.wrap_on": "Radbrytning på: raderna anpassas till fönstret (klicka för att behålla de ursprungliga radbrytningarna)",
+ "ed.wrap_off": "Ursprungliga radbrytningar: långa rader rullar i sidled (klicka för att bryta dem)"
 }

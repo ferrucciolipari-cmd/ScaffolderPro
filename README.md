@@ -7,6 +7,7 @@ No package installations, no build: just copy the folder and open it in the brow
 
 - **Explorer** with multi-selection, drag & drop (including from the computer), right-click menu, rename, duplicate (⌘D), delete with trash bin.
 - **Go to file** (⌘P / Ctrl+P): fuzzy search on all the file paths of the root.
+- **Go to line** (⌃G / Ctrl+G): type `120` or `120:5` (line:column). A button next to the zoom switches word wrap on and off.
 - **Go back / Go forward** through the places you visited, like VS Code: ⌃- / ⌃⇧- on Mac, Alt+← / Alt+→ on Windows and Linux, the side buttons of the mouse or the arrows in the editor bar.
 - **Root picker** with search: the folders of your web space as a collapsible tree (open only the branches you need), with a badge for writable (R/W) and read-only (R) folders.
 - **Tabbed editor** (Ace) with syntax highlighting, ⌘S / Ctrl+S, side-by-side website preview (in the ☰ menu of the editor bar, with download and delete). If a file was changed on disk after you opened it (FTP, another user), Scaffolder Pro asks before overwriting it.

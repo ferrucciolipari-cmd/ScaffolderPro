@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Deconectează toate celelalte dispozitive",
  "sec.no_devices": "Niciun alt dispozitiv.",
  "sec.others_q": "Deconectezi toate celelalte dispozitive? Vor trebui să se autentifice din nou.",
- "sec.copied": "Copiat."
+ "sec.copied": "Copiat.",
+ "ed.goto_line": "Mergi la linia…",
+ "gl.placeholder": "Numărul liniei (1–{n}) sau linie:coloană",
+ "gl.current": "Linia {row} din {n}",
+ "gl.invalid": "Scrie un număr de linie între 1 și {n}.",
+ "ed.wrap_on": "Încadrare automată: liniile se potrivesc în fereastră (clic pentru a păstra rupturile originale)",
+ "ed.wrap_off": "Rupturi originale: liniile lungi derulează pe orizontală (clic pentru a le încadra)"
 }

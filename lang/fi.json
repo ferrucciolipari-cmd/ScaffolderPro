@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Kirjaudu ulos kaikilta muilta laitteilta",
  "sec.no_devices": "Ei muita laitteita.",
  "sec.others_q": "Kirjaudutaanko ulos kaikilta muilta laitteilta? Niiden on kirjauduttava uudelleen.",
- "sec.copied": "Kopioitu."
+ "sec.copied": "Kopioitu.",
+ "ed.goto_line": "Siirry riville…",
+ "gl.placeholder": "Rivinumero (1–{n}) tai rivi:sarake",
+ "gl.current": "Rivi {row}/{n}",
+ "gl.invalid": "Kirjoita rivinumero väliltä 1–{n}.",
+ "ed.wrap_on": "Rivitys päällä: rivit sovitetaan ikkunaan (napsauta säilyttääksesi alkuperäiset rivinvaihdot)",
+ "ed.wrap_off": "Alkuperäiset rivinvaihdot: pitkät rivit vierivät vaakasuunnassa (napsauta rivittääksesi)"
 }

@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Esci da tutti gli altri dispositivi",
  "sec.no_devices": "Nessun altro dispositivo.",
  "sec.others_q": "Uscire da tutti gli altri dispositivi? Dovranno accedere di nuovo.",
- "sec.copied": "Copiato."
+ "sec.copied": "Copiato.",
+ "ed.goto_line": "Vai alla riga…",
+ "gl.placeholder": "Numero di riga (1–{n}), oppure riga:colonna",
+ "gl.current": "Riga {row} di {n}",
+ "gl.invalid": "Scrivi un numero di riga tra 1 e {n}.",
+ "ed.wrap_on": "A capo automatico: le righe si adattano alla finestra (clic per tenere gli a capo originali)",
+ "ed.wrap_off": "A capo originali: le righe lunghe scorrono in orizzontale (clic per mandarle a capo)"
 }

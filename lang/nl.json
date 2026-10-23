@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Uitloggen op alle andere apparaten",
  "sec.no_devices": "Geen andere apparaten.",
  "sec.others_q": "Uitloggen op alle andere apparaten? Ze moeten opnieuw inloggen.",
- "sec.copied": "Gekopieerd."
+ "sec.copied": "Gekopieerd.",
+ "ed.goto_line": "Ga naar regel…",
+ "gl.placeholder": "Regelnummer (1–{n}), of regel:kolom",
+ "gl.current": "Regel {row} van {n}",
+ "gl.invalid": "Typ een regelnummer tussen 1 en {n}.",
+ "ed.wrap_on": "Regelterugloop aan: regels passen in het venster (klik om de originele regeleinden te houden)",
+ "ed.wrap_off": "Originele regeleinden: lange regels scrollen horizontaal (klik om ze af te breken)"
 }

@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Wyloguj ze wszystkich innych urządzeń",
  "sec.no_devices": "Brak innych urządzeń.",
  "sec.others_q": "Wylogować ze wszystkich innych urządzeń? Będą musiały zalogować się ponownie.",
- "sec.copied": "Skopiowano."
+ "sec.copied": "Skopiowano.",
+ "ed.goto_line": "Przejdź do wiersza…",
+ "gl.placeholder": "Numer wiersza (1–{n}) lub wiersz:kolumna",
+ "gl.current": "Wiersz {row} z {n}",
+ "gl.invalid": "Wpisz numer wiersza od 1 do {n}.",
+ "ed.wrap_on": "Zawijanie wierszy: wiersze mieszczą się w oknie (kliknij, aby zachować oryginalne podziały)",
+ "ed.wrap_off": "Oryginalne podziały: długie wiersze przewijają się w poziomie (kliknij, aby je zawinąć)"
 }

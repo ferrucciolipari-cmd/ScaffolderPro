@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Terminar sessão em todos os outros dispositivos",
  "sec.no_devices": "Nenhum outro dispositivo.",
  "sec.others_q": "Terminar sessão em todos os outros dispositivos? Terão de entrar de novo.",
- "sec.copied": "Copiado."
+ "sec.copied": "Copiado.",
+ "ed.goto_line": "Ir para a linha…",
+ "gl.placeholder": "Número da linha (1–{n}), ou linha:coluna",
+ "gl.current": "Linha {row} de {n}",
+ "gl.invalid": "Escreve um número de linha entre 1 e {n}.",
+ "ed.wrap_on": "Quebra automática: as linhas ajustam-se à janela (clica para manter as quebras originais)",
+ "ed.wrap_off": "Quebras originais: as linhas longas deslizam na horizontal (clica para as quebrar)"
 }

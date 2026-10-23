@@ -709,5 +709,11 @@
  "sec.sign_out_others": "다른 모든 기기에서 로그아웃",
  "sec.no_devices": "다른 기기가 없습니다.",
  "sec.others_q": "다른 모든 기기에서 로그아웃할까요? 다시 로그인해야 합니다.",
- "sec.copied": "복사했습니다."
+ "sec.copied": "복사했습니다.",
+ "ed.goto_line": "줄로 이동…",
+ "gl.placeholder": "줄 번호(1–{n}) 또는 줄:열",
+ "gl.current": "{n}줄 중 {row}번째 줄",
+ "gl.invalid": "1에서 {n} 사이의 줄 번호를 입력하세요.",
+ "ed.wrap_on": "자동 줄 바꿈: 줄이 창에 맞춰집니다(클릭하면 원래 줄 바꿈 유지)",
+ "ed.wrap_off": "원래 줄 바꿈: 긴 줄은 가로로 스크롤됩니다(클릭하면 줄 바꿈)"
 }

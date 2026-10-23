@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Cerrar sesión en todos los demás dispositivos",
  "sec.no_devices": "No hay otros dispositivos.",
  "sec.others_q": "¿Cerrar sesión en todos los demás dispositivos? Tendrán que volver a entrar.",
- "sec.copied": "Copiado."
+ "sec.copied": "Copiado.",
+ "ed.goto_line": "Ir a la línea…",
+ "gl.placeholder": "Número de línea (1–{n}), o línea:columna",
+ "gl.current": "Línea {row} de {n}",
+ "gl.invalid": "Escribe un número de línea entre 1 y {n}.",
+ "ed.wrap_on": "Ajuste de línea: las líneas se adaptan a la ventana (clic para mantener los saltos originales)",
+ "ed.wrap_off": "Saltos originales: las líneas largas se desplazan en horizontal (clic para ajustarlas)"
 }

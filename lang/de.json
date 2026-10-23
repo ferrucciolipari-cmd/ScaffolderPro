@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Von allen anderen Geräten abmelden",
  "sec.no_devices": "Keine anderen Geräte.",
  "sec.others_q": "Von allen anderen Geräten abmelden? Sie müssen sich neu anmelden.",
- "sec.copied": "Kopiert."
+ "sec.copied": "Kopiert.",
+ "ed.goto_line": "Gehe zu Zeile…",
+ "gl.placeholder": "Zeilennummer (1–{n}) oder Zeile:Spalte",
+ "gl.current": "Zeile {row} von {n}",
+ "gl.invalid": "Gib eine Zeilennummer zwischen 1 und {n} ein.",
+ "ed.wrap_on": "Zeilenumbruch an: Zeilen passen sich dem Fenster an (Klick, um die originalen Umbrüche zu behalten)",
+ "ed.wrap_off": "Originale Umbrüche: lange Zeilen scrollen horizontal (Klick zum Umbrechen)"
 }

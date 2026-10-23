@@ -70,6 +70,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
         <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
         <symbol id="i-device" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16.5V20"/></symbol>
+        <symbol id="i-wrap" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M3 12h15a3 3 0 0 1 0 6h-4"/><path d="m16 16-2 2 2 2"/><path d="M3 18h7"/></symbol>
+        <symbol id="i-gotoline" viewBox="0 0 24 24"><path d="M4 7h3M4 12h3M4 17h3"/><path d="M11 12h9"/><path d="m16 8 4 4-4 4"/></symbol>
         <symbol id="i-format" viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></symbol>
         <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
         <symbol id="i-minimap" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M14.5 3.5v17"/><path d="M6.5 8h5M6.5 11h4M6.5 14h5"/></symbol>
@@ -223,6 +225,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                         <button type="button" class="tb-btn" data-zoom="-1" title="<?= tx('ed.zoom_out') ?>"><?= ic('minus') ?></button>
                         <span id="zoomLabel" title="<?= tx('ed.zoom_reset') ?>">14px</span>
                         <button type="button" class="tb-btn" data-zoom="1" title="<?= tx('ed.zoom_in') ?>"><?= ic('plus') ?></button>
+                        <button type="button" class="tb-btn wrap-btn" id="wrapBtn" aria-pressed="false"><?= ic('wrap') ?></button>
                     </span>
                     <span class="tb-sep"></span>
                     <button type="button" class="tb-btn save" id="saveBtn" title="<?= tx('ed.save_title') ?>"><?= ic('save') ?><span><?= tx('common.save') ?></span></button>
@@ -362,10 +365,12 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
             <div id="httpList" class="http-list card-scroll"></div>
         </div>
 
-        <details class="card" id="versionsCard" hidden>
-            <summary><h3><?= ic('history') ?> <?= tx('ver.title') ?> (<span id="versionsCount">0</span>)</h3></summary>
+        <div class="card" id="versionsCard" hidden>
+            <div class="card-head">
+                <h3><?= ic('history') ?> <?= tx('ver.title') ?> (<span id="versionsCount">0</span>)</h3>
+            </div>
             <div class="bak-list card-scroll" id="versionsList"></div>
-        </details>
+        </div>
 
         <div class="card" id="errorsCard">
             <div class="card-head">
@@ -433,6 +438,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 <!-- Menu ☰ della barra dell'editor: azioni sul file aperto -->
 <div id="editorMenu" class="ctx-menu dropdown" role="menu" hidden>
     <button type="button" class="ctx-item" data-ed="format" id="formatBtn" role="menuitem"><?= ic('format') ?><span><?= tx('ed.format') ?></span><kbd>⇧⌥F</kbd></button>
+    <button type="button" class="ctx-item" data-ed="gotoline" id="gotoLineBtn" role="menuitem"><?= ic('gotoline') ?><span><?= tx('ed.goto_line') ?></span><kbd>⌃G</kbd></button>
     <button type="button" class="ctx-item" data-ed="symbols" id="symbolsBtn" role="menuitem"><?= ic('list') ?><span><?= tx('ed.symbols') ?></span><kbd>⇧⌘O</kbd></button>
     <button type="button" class="ctx-item" data-ed="minimap" id="minimapBtn" role="menuitemcheckbox" aria-checked="false"><?= ic('minimap') ?><span><?= tx('ed.minimap') ?></span><span class="ctx-check"><?= ic('check') ?></span></button>
     <div class="ctx-sep"></div>
@@ -636,6 +642,12 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <div class="qo-input"><?= ic('search') ?><input type="text" id="qoInput" placeholder="<?= tx('qo.placeholder') ?>" autocomplete="off" spellcheck="false"></div>
     <div id="qoList" class="qo-list"></div>
     <div class="qo-foot muted"><span><kbd>↑</kbd><kbd>↓</kbd> <?= tx('qo.move') ?></span><span><kbd>↵</kbd> <?= tx('qo.open') ?></span><span><kbd>Esc</kbd> <?= tx('common.close') ?></span></div>
+</dialog>
+
+<!-- Vai alla riga (⌃G): "120" oppure "120:5" (riga:colonna) -->
+<dialog id="gotoLineDialog" class="modal small quick-open">
+    <div class="qo-input"><?= ic('gotoline') ?><input type="text" id="gotoLineInput" inputmode="numeric" autocomplete="off" spellcheck="false"></div>
+    <div class="qo-foot muted"><span id="gotoLineHint"></span><span><kbd>↵</kbd> <?= tx('qo.open') ?></span><span><kbd>Esc</kbd> <?= tx('common.close') ?></span></div>
 </dialog>
 
 <!-- Vai al simbolo (⇧⌘O / Ctrl+Shift+O): funzioni, classi, selettori, titoli del file aperto -->

@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Odhlásit všechna ostatní zařízení",
  "sec.no_devices": "Žádná další zařízení.",
  "sec.others_q": "Odhlásit všechna ostatní zařízení? Budou se muset znovu přihlásit.",
- "sec.copied": "Zkopírováno."
+ "sec.copied": "Zkopírováno.",
+ "ed.goto_line": "Přejít na řádek…",
+ "gl.placeholder": "Číslo řádku (1–{n}) nebo řádek:sloupec",
+ "gl.current": "Řádek {row} z {n}",
+ "gl.invalid": "Zadejte číslo řádku od 1 do {n}.",
+ "ed.wrap_on": "Zalamování zapnuto: řádky se přizpůsobí oknu (klikněte pro původní zalomení)",
+ "ed.wrap_off": "Původní zalomení: dlouhé řádky se posouvají vodorovně (klikněte pro zalamování)"
 }

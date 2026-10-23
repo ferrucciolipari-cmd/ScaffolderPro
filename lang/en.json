@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Sign out of all other devices",
  "sec.no_devices": "No other devices.",
  "sec.others_q": "Sign out of all the other devices? They will have to sign in again.",
- "sec.copied": "Copied."
+ "sec.copied": "Copied.",
+ "ed.goto_line": "Go to line…",
+ "gl.placeholder": "Line number (1–{n}), or line:column",
+ "gl.current": "Line {row} of {n}",
+ "gl.invalid": "Type a line number between 1 and {n}.",
+ "ed.wrap_on": "Word wrap on: lines fit the window (click to keep the original line breaks)",
+ "ed.wrap_off": "Original line breaks: long lines scroll sideways (click to wrap them)"
 }

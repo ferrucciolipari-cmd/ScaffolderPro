@@ -709,5 +709,11 @@
  "sec.sign_out_others": "退出其他所有设备",
  "sec.no_devices": "没有其他设备。",
  "sec.others_q": "退出其他所有设备？它们需要重新登录。",
- "sec.copied": "已复制。"
+ "sec.copied": "已复制。",
+ "ed.goto_line": "转到行…",
+ "gl.placeholder": "行号（1–{n}），或 行:列",
+ "gl.current": "第 {row} 行，共 {n} 行",
+ "gl.invalid": "请输入 1 到 {n} 之间的行号。",
+ "ed.wrap_on": "自动换行：行适应窗口宽度（点击保留原始换行）",
+ "ed.wrap_off": "原始换行：长行横向滚动（点击启用自动换行）"
 }

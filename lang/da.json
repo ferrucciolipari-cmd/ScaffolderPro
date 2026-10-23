@@ -709,5 +709,11 @@
  "sec.sign_out_others": "Log ud fra alle andre enheder",
  "sec.no_devices": "Ingen andre enheder.",
  "sec.others_q": "Log ud fra alle andre enheder? De skal logge ind igen.",
- "sec.copied": "Kopieret."
+ "sec.copied": "Kopieret.",
+ "ed.goto_line": "Gå til linje…",
+ "gl.placeholder": "Linjenummer (1–{n}), eller linje:kolonne",
+ "gl.current": "Linje {row} af {n}",
+ "gl.invalid": "Skriv et linjenummer mellem 1 og {n}.",
+ "ed.wrap_on": "Ombrydning til: linjerne tilpasses vinduet (klik for at beholde de oprindelige linjeskift)",
+ "ed.wrap_off": "Oprindelige linjeskift: lange linjer ruller vandret (klik for at ombryde dem)"
 }
