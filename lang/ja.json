@@ -631,5 +631,7 @@
  "ver.legend_old": "{date} のバージョン",
  "ver.mode_diff": "差分",
  "ver.mode_full": "全文",
- "ver.same_lines": "… 変更のない {n} 行"
+ "ver.same_lines": "… 変更のない {n} 行",
+ "nav.back": "戻る",
+ "nav.forward": "進む"
 }

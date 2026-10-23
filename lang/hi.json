@@ -631,5 +631,7 @@
  "ver.legend_old": "{date} का संस्करण",
  "ver.mode_diff": "अंतर",
  "ver.mode_full": "पूरा टेक्स्ट",
- "ver.same_lines": "… {n} अपरिवर्तित पंक्तियाँ"
+ "ver.same_lines": "… {n} अपरिवर्तित पंक्तियाँ",
+ "nav.back": "पीछे जाएँ",
+ "nav.forward": "आगे जाएँ"
 }

@@ -631,5 +631,7 @@
  "ver.legend_old": "versio {date}",
  "ver.mode_diff": "Erot",
  "ver.mode_full": "Koko teksti",
- "ver.same_lines": "… {n} muuttumatonta riviä"
+ "ver.same_lines": "… {n} muuttumatonta riviä",
+ "nav.back": "Takaisin",
+ "nav.forward": "Eteenpäin"
 }

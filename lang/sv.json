@@ -631,5 +631,7 @@
  "ver.legend_old": "version från {date}",
  "ver.mode_diff": "Skillnader",
  "ver.mode_full": "Hela texten",
- "ver.same_lines": "… {n} oförändrade rader"
+ "ver.same_lines": "… {n} oförändrade rader",
+ "nav.back": "Bakåt",
+ "nav.forward": "Framåt"
 }

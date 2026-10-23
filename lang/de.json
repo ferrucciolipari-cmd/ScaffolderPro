@@ -631,5 +631,7 @@
  "ver.legend_old": "Version vom {date}",
  "ver.mode_diff": "Unterschiede",
  "ver.mode_full": "Vollständiger Text",
- "ver.same_lines": "… {n} unveränderte Zeilen"
+ "ver.same_lines": "… {n} unveränderte Zeilen",
+ "nav.back": "Zurück",
+ "nav.forward": "Vorwärts"
 }

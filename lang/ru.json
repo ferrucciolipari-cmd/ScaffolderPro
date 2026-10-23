@@ -631,5 +631,7 @@
  "ver.legend_old": "версия от {date}",
  "ver.mode_diff": "Различия",
  "ver.mode_full": "Полный текст",
- "ver.same_lines": "… строк без изменений: {n}"
+ "ver.same_lines": "… строк без изменений: {n}",
+ "nav.back": "Назад",
+ "nav.forward": "Вперёд"
 }

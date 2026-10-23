@@ -631,5 +631,7 @@
  "ver.legend_old": "verze z {date}",
  "ver.mode_diff": "Rozdíly",
  "ver.mode_full": "Celý text",
- "ver.same_lines": "… {n} nezměněných řádků"
+ "ver.same_lines": "… {n} nezměněných řádků",
+ "nav.back": "Zpět",
+ "nav.forward": "Vpřed"
 }

@@ -7,6 +7,7 @@ No package installations, no build: just copy the folder and open it in the brow
 
 - **Explorer** with multi-selection, drag & drop (including from the computer), right-click menu, rename, duplicate (⌘D), delete with trash bin.
 - **Go to file** (⌘P / Ctrl+P): fuzzy search on all the file paths of the root.
+- **Go back / Go forward** through the places you visited, like VS Code: ⌃- / ⌃⇧- on Mac, Alt+← / Alt+→ on Windows and Linux, the side buttons of the mouse or the arrows in the editor bar.
 - **Root picker** with search: the folders of your web space as a tree, with a badge for writable (R/W) and read-only (R) folders.
 - **Tabbed editor** (Ace) with syntax highlighting, ⌘S / Ctrl+S, side-by-side website preview. If a file was changed on disk after you opened it (FTP, another user), TreeForge asks before overwriting it.
 - **Find and replace** in the content of all files (⌘⇧F / Ctrl+Shift+F), with regular expressions.

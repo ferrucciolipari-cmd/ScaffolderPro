@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initErrors();
     initDiffView();
     initQuickOpen();
+    initNavHistory();
     initSetupAuth();
 
     $('#rootName').textContent = baseName(APP.rootDir) || APP.rootDir;
@@ -1054,6 +1055,13 @@ function initEditor() {
     editor.commands.addCommand({ name: 'closeTab', bindKey: { win: 'Alt-W', mac: 'Alt-W' }, exec: () => state.active && closeTab(state.active) });
     editor.commands.addCommand({ name: 'searchFiles', bindKey: { win: 'Ctrl-Shift-F', mac: 'Command-Shift-F' }, exec: () => openSearch(true) });
     applyEditorZoom(currentZoom);
+    // Spostamenti del cursore: alimentano la cronologia di navigazione (Indietro / Avanti)
+    editor.on('changeSelection', () => {
+        const tab = tabFor(state.active);
+        if (!tab || tab.session !== editor.session) return;
+        const p = editor.getCursorPosition();
+        navRecord(tab.path, p.row, p.column);
+    });
 
     // Touch: la tastiera si apre solo toccando l'area del testo (.ace_content), non gutter, barre o bordi
     if (IS_TOUCH) {
@@ -1314,6 +1322,7 @@ function activateTab(path) {
         renderTabs();
         renderCtxChips();
         saveTabsState();
+        navRecord(path, 0, 0);
         document.title = L('js.claude_proposal') + ': ' + baseName(tab.prop.path) + ' — TreeForge';
         return;
     }
@@ -1326,6 +1335,7 @@ function activateTab(path) {
         renderCtxChips();
         renderHttpList();
         saveTabsState();
+        navRecord(path, 0, 0);
         document.title = tab.req.name + ' — TreeForge';
         return;
     }
@@ -1352,6 +1362,8 @@ function activateTab(path) {
     if (state.split) refreshSplit();
     saveTabsState();
     document.title = baseName(path) + ' — TreeForge';
+    const pos = isCode ? editor.getCursorPosition() : { row: 0, column: 0 };
+    navRecord(path, pos.row, pos.column);
 }
 
 function showNonCode(tab) {
@@ -1382,17 +1394,17 @@ function closeTab(path, force = false) {
     const tab = tabFor(path);
     if (!tab) return;
     if (!force && isDirty(tab) && !confirm(L('js.close_dirty', { name: baseName(path) }))) return;
+    // La scheda esce subito dall'elenco (riaprire lo stesso file ne crea una nuova); l'animazione riguarda solo l'elemento
     const idx = state.tabs.indexOf(tab);
+    state.tabs.splice(idx, 1);
+    const wasActive = state.active === path;
+    if (wasActive) state.active = null;
     const finish = () => {
-        state.tabs.splice(state.tabs.indexOf(tab), 1);
         if (tab.session) tab.session.destroy && tab.session.destroy();
-        if (state.active === path) {
+        renderTabs();
+        if (wasActive && !state.active) {
             const next = state.tabs[Math.min(idx, state.tabs.length - 1)];
-            state.active = null;
-            renderTabs();
             if (next) activateTab(next.path); else showWelcome();
-        } else {
-            renderTabs();
         }
         saveTabsState();
     };
@@ -3417,6 +3429,90 @@ function initShortcuts() {
     });
     // Clic su una riga dà il focus all'albero, così Canc/F2 funzionano
     $('#tree').addEventListener('mousedown', () => $('#treeContainer').focus({ preventScroll: true }));
+}
+
+// ----------------------------------------------------------------------------
+// CRONOLOGIA DI NAVIGAZIONE (come VS Code: Indietro / Avanti tra schede e punti del codice)
+// Mac: ⌃- / ⌃⇧-   Windows/Linux: Alt+← / Alt+→   Mouse: tasti laterali Indietro / Avanti
+// Una nuova voce nasce cambiando scheda o saltando più di NAV_LINES righe nello stesso file;
+// i piccoli spostamenti aggiornano solo la posizione della voce attuale.
+// ----------------------------------------------------------------------------
+const nav = { list: [], idx: -1, busy: false };
+const NAV_LINES = 10, NAV_MAX = 60;
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+function navRecord(path, row, col) {
+    if (nav.busy || !path) return;
+    const cur = nav.list[nav.idx];
+    if (cur && cur.path === path && Math.abs(cur.row - row) <= NAV_LINES) { cur.row = row; cur.col = col; return; }
+    nav.list = nav.list.slice(0, nav.idx + 1);
+    nav.list.push({ path, row, col });
+    if (nav.list.length > NAV_MAX) nav.list.shift();
+    nav.idx = nav.list.length - 1;
+    updateNavButtons();
+}
+
+async function navGo(dir) {
+    for (let i = nav.idx + dir; i >= 0 && i < nav.list.length; i = nav.idx + dir) {
+        const e = nav.list[i];
+        // Le schede chiuse si riaprono; i file che non esistono più (e le proposte di Claude chiuse) si saltano
+        let tab = tabFor(e.path);
+        if (!tab && !e.path.startsWith('diff:') && (e.path.startsWith('http:') || state.files.includes(e.path))) {
+            tab = await openFile(e.path, { activate: false, silent: true });
+        }
+        if (!tab) {
+            nav.list.splice(i, 1);
+            if (i < nav.idx) nav.idx--;
+            continue;
+        }
+        nav.busy = true;
+        nav.idx = i;
+        try {
+            activateTab(e.path);
+            if (tab.kind === 'code' && editor && tab.session === editor.session) {
+                editor.clearSelection();
+                editor.moveCursorTo(e.row, e.col);
+                editor.scrollToLine(e.row, true, true, () => {});
+            }
+        } finally {
+            nav.busy = false;
+        }
+        break;
+    }
+    updateNavButtons();
+}
+
+function updateNavButtons() {
+    const back = $('#navBack'), fwd = $('#navForward');
+    if (!back) return;
+    back.disabled = nav.idx <= 0;
+    fwd.disabled = nav.idx >= nav.list.length - 1;
+}
+
+function initNavHistory() {
+    const kb = IS_MAC ? ['⌃-', '⌃⇧-'] : ['Alt+←', 'Alt+→'];
+    $('#navBack').title = L('nav.back') + ' (' + kb[0] + ')';
+    $('#navForward').title = L('nav.forward') + ' (' + kb[1] + ')';
+    $('#navBack').addEventListener('click', () => navGo(-1));
+    $('#navForward').addEventListener('click', () => navGo(1));
+    // In cattura: vale anche con il focus nell'editor (Ace non riceve il tasto)
+    document.addEventListener('keydown', (e) => {
+        if ($$('dialog[open]').length) return;
+        let dir = 0;
+        if (e.ctrlKey && !e.metaKey && !e.altKey && (e.code === 'Minus' || e.key === '-' || e.key === '_')) dir = e.shiftKey ? 1 : -1;
+        else if (!IS_MAC && e.altKey && !e.ctrlKey && !e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) dir = e.key === 'ArrowLeft' ? -1 : 1;
+        if (!dir) return;
+        e.preventDefault();
+        e.stopPropagation();
+        navGo(dir);
+    }, true);
+    // Tasti laterali del mouse: senza preventDefault il browser lascerebbe la pagina
+    window.addEventListener('mouseup', (e) => {
+        if (e.button !== 3 && e.button !== 4) return;
+        e.preventDefault();
+        navGo(e.button === 3 ? -1 : 1);
+    });
+    window.addEventListener('mousedown', (e) => { if (e.button === 3 || e.button === 4) e.preventDefault(); });
 }
 
 // ----------------------------------------------------------------------------

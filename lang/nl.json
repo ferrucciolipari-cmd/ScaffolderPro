@@ -631,5 +631,7 @@
  "ver.legend_old": "versie van {date}",
  "ver.mode_diff": "Verschillen",
  "ver.mode_full": "Volledige tekst",
- "ver.same_lines": "… {n} ongewijzigde regels"
+ "ver.same_lines": "… {n} ongewijzigde regels",
+ "nav.back": "Terug",
+ "nav.forward": "Vooruit"
 }

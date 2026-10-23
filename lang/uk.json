@@ -631,5 +631,7 @@
  "ver.legend_old": "версія від {date}",
  "ver.mode_diff": "Відмінності",
  "ver.mode_full": "Повний текст",
- "ver.same_lines": "… рядків без змін: {n}"
+ "ver.same_lines": "… рядків без змін: {n}",
+ "nav.back": "Назад",
+ "nav.forward": "Вперед"
 }

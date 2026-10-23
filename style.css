@@ -1674,3 +1674,7 @@ dialog.modal.quick-open { padding: 0; width: min(620px, 94vw); align-self: start
 
 .settings-grid.one { grid-template-columns: 1fr; margin: 10px 0; gap: 10px; }
 .settings-grid.one label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #bbb; }
+
+/* Indietro / Avanti nella cronologia di navigazione */
+.nav-controls { display: inline-flex; gap: 2px; }
+.nav-controls .tb-btn:disabled { opacity: .35; cursor: default; background: transparent; }

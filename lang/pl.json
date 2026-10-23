@@ -631,5 +631,7 @@
  "ver.legend_old": "wersja z {date}",
  "ver.mode_diff": "Różnice",
  "ver.mode_full": "Pełny tekst",
- "ver.same_lines": "… {n} niezmienionych wierszy"
+ "ver.same_lines": "… {n} niezmienionych wierszy",
+ "nav.back": "Wstecz",
+ "nav.forward": "Dalej"
 }

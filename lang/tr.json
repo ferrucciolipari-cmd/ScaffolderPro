@@ -631,5 +631,7 @@
  "ver.legend_old": "{date} sürümü",
  "ver.mode_diff": "Farklar",
  "ver.mode_full": "Tam metin",
- "ver.same_lines": "… {n} değişmemiş satır"
+ "ver.same_lines": "… {n} değişmemiş satır",
+ "nav.back": "Geri git",
+ "nav.forward": "İleri git"
 }

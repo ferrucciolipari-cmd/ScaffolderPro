@@ -631,5 +631,7 @@
  "ver.legend_old": "version fra {date}",
  "ver.mode_diff": "Forskelle",
  "ver.mode_full": "Hele teksten",
- "ver.same_lines": "… {n} uændrede linjer"
+ "ver.same_lines": "… {n} uændrede linjer",
+ "nav.back": "Tilbage",
+ "nav.forward": "Frem"
 }

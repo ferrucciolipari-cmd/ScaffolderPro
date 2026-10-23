@@ -631,5 +631,7 @@
  "ver.legend_old": "έκδοση της {date}",
  "ver.mode_diff": "Διαφορές",
  "ver.mode_full": "Πλήρες κείμενο",
- "ver.same_lines": "… {n} ίδιες γραμμές"
+ "ver.same_lines": "… {n} ίδιες γραμμές",
+ "nav.back": "Πίσω",
+ "nav.forward": "Εμπρός"
 }

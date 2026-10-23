@@ -66,6 +66,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
         <symbol id="i-replace" viewBox="0 0 24 24"><path d="M4 7h11"/><path d="m12 4 3 3-3 3"/><path d="M20 17H9"/><path d="m12 14-3 3 3 3"/></symbol>
         <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="13" rx="5"/><path d="M12 11v9M9 4.5l1.5 2.5M15 4.5 13.5 7M3.5 13H7M17 13h3.5M4.5 8.5 7.5 10M19.5 8.5 16.5 10M4.5 18.5l3-1.5M19.5 18.5l-3-1.5"/></symbol>
+        <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
+        <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
         <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
         <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
     </defs>
@@ -203,6 +205,11 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                     <span id="saveStatus" class="save-status"></span>
                 </div>
                 <div class="editor-actions">
+                    <span class="nav-controls">
+                        <button type="button" class="tb-btn" id="navBack" disabled><?= ic('arrow-left') ?></button>
+                        <button type="button" class="tb-btn" id="navForward" disabled><?= ic('arrow-right') ?></button>
+                    </span>
+                    <span class="tb-sep"></span>
                     <span class="zoom-controls" id="zoomControls">
                         <button type="button" class="tb-btn" data-zoom="-1" title="<?= tx('ed.zoom_out') ?>"><?= ic('minus') ?></button>
                         <span id="zoomLabel" title="<?= tx('ed.zoom_reset') ?>">14px</span>

@@ -631,5 +631,7 @@
  "ver.legend_old": "{date} 버전",
  "ver.mode_diff": "차이",
  "ver.mode_full": "전체 텍스트",
- "ver.same_lines": "… 변경 없는 {n}줄"
+ "ver.same_lines": "… 변경 없는 {n}줄",
+ "nav.back": "뒤로",
+ "nav.forward": "앞으로"
 }

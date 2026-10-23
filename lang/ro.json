@@ -631,5 +631,7 @@
  "ver.legend_old": "versiunea din {date}",
  "ver.mode_diff": "Diferențe",
  "ver.mode_full": "Text complet",
- "ver.same_lines": "… {n} linii identice"
+ "ver.same_lines": "… {n} linii identice",
+ "nav.back": "Înapoi",
+ "nav.forward": "Înainte"
 }
