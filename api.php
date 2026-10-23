@@ -950,7 +950,7 @@ switch ($action) {
         if ($key === '' && $old) $key = (string)$old['auth']['value'];
         if ($key === '') fail(t('golem.key_missing'));
         $data = ['Golem Lite blueprint · ' . basename($rootDir), 'GET', $url, '[]',
-                 json_encode(['type' => 'header', 'name' => 'X-Api-Key', 'value' => $key], JSON_UNESCAPED_UNICODE), '', json_encode(['insecure' => false])];
+                 json_encode(['type' => 'header', 'name' => 'X-Api-Key', 'value' => $key], JSON_UNESCAPED_UNICODE), '', json_encode(['insecure' => ($_POST['insecure'] ?? '0') === '1'])];
         if ($old) {
             db()->prepare("UPDATE http_requests SET name = ?, method = ?, url = ?, headers = ?, auth = ?, body = ?, options = ?, updated_at = datetime('now','localtime') WHERE id = ?")
                 ->execute(array_merge($data, [$id]));
@@ -961,7 +961,7 @@ switch ($action) {
         golemSetLink($id);
         $got = golemFetch(httpGetRequest($id));
         if (isset($got['error'])) { addLog('error', 'Golem Lite: ' . $got['error']); fail($got['error']); }
-        $res = golemInstall($got['bp'], $key, true);
+        $res = golemInstall($got['bp'], $key, true, ($_POST['insecure'] ?? '0') === '1');
         if (isset($res['error'])) { addLog('error', 'Golem Lite: ' . $res['error']); fail($res['error']); }
         db()->prepare('UPDATE http_requests SET name = ? WHERE id = ?')->execute(['Golem Lite blueprint · ' . ($res['label'] !== '' ? $res['label'] : basename($rootDir)), $id]);
         addLog('create', t('golem.log_import', ['label' => $res['label'], 'files' => implode(', ', $res['written']) ?: '—']));

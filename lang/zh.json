@@ -745,5 +745,6 @@
  "golem.cannot_write": "无法写入 {path}：请检查根目录的权限。",
  "golem.log_import": "Golem Lite：已导入「{label}」的结构（{files}）",
  "golem.log_refresh": "Golem Lite：已更新「{label}」的结构（数据版本 {v}）",
- "ver.r_golem": "Golem Lite 更新之前"
+ "ver.r_golem": "Golem Lite 更新之前",
+ "golem.insecure": "不验证 SSL 证书（仅限使用自签名证书的本地开发）"
 }

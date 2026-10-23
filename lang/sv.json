@@ -745,5 +745,6 @@
  "golem.cannot_write": "Kan inte skriva {path}: kontrollera rotens behörigheter.",
  "golem.log_import": "Golem Lite: strukturen för ”{label}” importerad ({files})",
  "golem.log_refresh": "Golem Lite: strukturen för ”{label}” uppdaterad (dataversion {v})",
- "ver.r_golem": "före uppdatering från Golem Lite"
+ "ver.r_golem": "före uppdatering från Golem Lite",
+ "golem.insecure": "Verifiera inte SSL-certifikatet (endast lokal utveckling med självsignerat certifikat)"
 }

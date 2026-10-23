@@ -3445,6 +3445,7 @@ function openGolem() {
     apiGet('golem_status').then(st => {
         if (!st.ok) { toast(st.error, 'error'); return; }
         f.url.value = st.url || '';
+        f.insecure.checked = !!st.insecure;
         f.key.placeholder = st.has_key ? L('golem.key_saved', { hint: st.key_hint }) : '';
         f.key.required = !st.has_key;
         $('#golemRefresh').hidden = !st.linked;
@@ -3477,7 +3478,7 @@ function initGolem() {
     f.addEventListener('submit', (e) => {
         e.preventDefault();
         busy(true);
-        apiPost({ action: 'golem_import', url: f.url.value.trim(), key: f.key.value.trim() }).then(res => done(res, 'import')).catch(err => { busy(false); toast(L('js.network_error') + ': ' + err, 'error'); });
+        apiPost({ action: 'golem_import', url: f.url.value.trim(), key: f.key.value.trim(), insecure: f.insecure.checked ? '1' : '0' }).then(res => done(res, 'import')).catch(err => { busy(false); toast(L('js.network_error') + ': ' + err, 'error'); });
     });
     $('#golemRefresh').addEventListener('click', () => {
         busy(true);

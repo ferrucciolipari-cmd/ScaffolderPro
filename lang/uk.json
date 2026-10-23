@@ -745,5 +745,6 @@
  "golem.cannot_write": "Не вдається записати {path}: перевірте права на корінь.",
  "golem.log_import": "Golem Lite: структуру «{label}» імпортовано ({files})",
  "golem.log_refresh": "Golem Lite: структуру «{label}» оновлено (версія даних {v})",
- "ver.r_golem": "перед оновленням із Golem Lite"
+ "ver.r_golem": "перед оновленням із Golem Lite",
+ "golem.insecure": "Не перевіряти сертифікат SSL (лише локальна розробка із самопідписаним сертифікатом)"
 }

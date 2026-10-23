@@ -745,5 +745,6 @@
  "golem.cannot_write": "Kan ikke skrive {path}: kontrollér rodens rettigheder.",
  "golem.log_import": "Golem Lite: struktur for “{label}” importeret ({files})",
  "golem.log_refresh": "Golem Lite: struktur for “{label}” opdateret (dataversion {v})",
- "ver.r_golem": "før opdatering fra Golem Lite"
+ "ver.r_golem": "før opdatering fra Golem Lite",
+ "golem.insecure": "Bekræft ikke SSL-certifikatet (kun lokal udvikling med selvsigneret certifikat)"
 }

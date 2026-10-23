@@ -745,5 +745,6 @@
  "golem.cannot_write": "Nie można zapisać {path}: sprawdź uprawnienia roota.",
  "golem.log_import": "Golem Lite: zaimportowano strukturę „{label}” ({files})",
  "golem.log_refresh": "Golem Lite: zaktualizowano strukturę „{label}” (wersja danych {v})",
- "ver.r_golem": "przed aktualizacją z Golem Lite"
+ "ver.r_golem": "przed aktualizacją z Golem Lite",
+ "golem.insecure": "Nie weryfikuj certyfikatu SSL (tylko lokalne środowisko z certyfikatem self-signed)"
 }

@@ -745,5 +745,6 @@
  "golem.cannot_write": "{path}에 쓸 수 없습니다. 루트의 권한을 확인하세요.",
  "golem.log_import": "Golem Lite: «{label}» 구조 가져옴({files})",
  "golem.log_refresh": "Golem Lite: «{label}» 구조 업데이트됨(데이터 버전 {v})",
- "ver.r_golem": "Golem Lite 업데이트 전"
+ "ver.r_golem": "Golem Lite 업데이트 전",
+ "golem.insecure": "SSL 인증서를 확인하지 않음(자체 서명 인증서를 쓰는 로컬 개발 전용)"
 }

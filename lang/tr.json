@@ -745,5 +745,6 @@
  "golem.cannot_write": "{path} yazılamıyor: kökün izinlerini kontrol et.",
  "golem.log_import": "Golem Lite: «{label}» yapısı içe aktarıldı ({files})",
  "golem.log_refresh": "Golem Lite: «{label}» yapısı güncellendi (veri sürümü {v})",
- "ver.r_golem": "Golem Lite güncellemesinden önce"
+ "ver.r_golem": "Golem Lite güncellemesinden önce",
+ "golem.insecure": "SSL sertifikasını doğrulama (yalnızca kendinden imzalı sertifikayla yerel geliştirme)"
 }

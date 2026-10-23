@@ -745,5 +745,6 @@
  "golem.cannot_write": "Impossible d'écrire {path} : vérifiez les permissions de la racine.",
  "golem.log_import": "Golem Lite : structure de « {label} » importée ({files})",
  "golem.log_refresh": "Golem Lite : structure de « {label} » mise à jour (version des données {v})",
- "ver.r_golem": "avant la mise à jour depuis Golem Lite"
+ "ver.r_golem": "avant la mise à jour depuis Golem Lite",
+ "golem.insecure": "Ne pas vérifier le certificat SSL (uniquement en développement local avec un certificat auto-signé)"
 }

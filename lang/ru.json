@@ -745,5 +745,6 @@
  "golem.cannot_write": "Не удаётся записать {path}: проверьте права на корень.",
  "golem.log_import": "Golem Lite: структура «{label}» импортирована ({files})",
  "golem.log_refresh": "Golem Lite: структура «{label}» обновлена (версия данных {v})",
- "ver.r_golem": "до обновления из Golem Lite"
+ "ver.r_golem": "до обновления из Golem Lite",
+ "golem.insecure": "Не проверять сертификат SSL (только локальная разработка с самоподписанным сертификатом)"
 }

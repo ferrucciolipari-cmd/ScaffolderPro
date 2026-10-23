@@ -745,5 +745,6 @@
  "golem.cannot_write": "Δεν είναι δυνατή η εγγραφή του {path}: έλεγξε τα δικαιώματα της ρίζας.",
  "golem.log_import": "Golem Lite: εισήχθη η δομή «{label}» ({files})",
  "golem.log_refresh": "Golem Lite: ενημερώθηκε η δομή «{label}» (έκδοση δεδομένων {v})",
- "ver.r_golem": "πριν από την ενημέρωση από Golem Lite"
+ "ver.r_golem": "πριν από την ενημέρωση από Golem Lite",
+ "golem.insecure": "Να μη γίνεται έλεγχος του πιστοποιητικού SSL (μόνο τοπική ανάπτυξη με αυτο-υπογεγραμμένο πιστοποιητικό)"
 }

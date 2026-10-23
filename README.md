@@ -133,6 +133,8 @@ front on top of it, and the front reads the updated data from the Golem API at e
    (it is used only by the server of the front, never by the browser).
 2. In Scaffolder Pro choose the root of the front, open the ☰ menu of the Explorer → **Import from Golem Lite…**, paste link and key, **Import**.
    The key is saved on the server like the keys of *API requests* (the browser sees only `••••1234`).
+   Locally with a self-signed certificate (`https://127.0.0.1`, "SSL certificate problem") tick **Don't verify the SSL certificate**: it also
+   writes `'verify_ssl' => false` in `golem/config.php`. Never online.
 3. In the root a `golem/` folder appears:
    - `blueprint.json` — the structure as Golem exports it;
    - `GOLEM.md` — instructions for Claude: which endpoint for each kind of node, languages, relative permalinks, media, rules;

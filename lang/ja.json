@@ -745,5 +745,6 @@
  "golem.cannot_write": "{path} に書き込めません。ルートの権限を確認してください。",
  "golem.log_import": "Golem Lite：「{label}」の構造をインポート（{files}）",
  "golem.log_refresh": "Golem Lite：「{label}」の構造を更新（データバージョン {v}）",
- "ver.r_golem": "Golem Lite からの更新前"
+ "ver.r_golem": "Golem Lite からの更新前",
+ "golem.insecure": "SSL 証明書を検証しない（自己署名証明書を使うローカル開発のみ）"
 }

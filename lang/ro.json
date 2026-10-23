@@ -745,5 +745,6 @@
  "golem.cannot_write": "Nu se poate scrie {path}: verifică permisiunile rădăcinii.",
  "golem.log_import": "Golem Lite: structura „{label}” importată ({files})",
  "golem.log_refresh": "Golem Lite: structura „{label}” actualizată (versiunea datelor {v})",
- "ver.r_golem": "înainte de actualizarea din Golem Lite"
+ "ver.r_golem": "înainte de actualizarea din Golem Lite",
+ "golem.insecure": "Nu verifica certificatul SSL (doar dezvoltare locală cu certificat autosemnat)"
 }

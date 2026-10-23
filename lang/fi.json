@@ -745,5 +745,6 @@
  "golem.cannot_write": "Tiedostoa {path} ei voi kirjoittaa: tarkista juuren oikeudet.",
  "golem.log_import": "Golem Lite: rakenne ”{label}” tuotu ({files})",
  "golem.log_refresh": "Golem Lite: rakenne ”{label}” päivitetty (dataversio {v})",
- "ver.r_golem": "ennen Golem Lite -päivitystä"
+ "ver.r_golem": "ennen Golem Lite -päivitystä",
+ "golem.insecure": "Älä tarkista SSL-varmennetta (vain paikallinen kehitys itse allekirjoitetulla varmenteella)"
 }

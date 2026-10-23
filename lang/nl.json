@@ -745,5 +745,6 @@
  "golem.cannot_write": "Kan {path} niet schrijven: controleer de rechten van de root.",
  "golem.log_import": "Golem Lite: structuur van ‘{label}’ geïmporteerd ({files})",
  "golem.log_refresh": "Golem Lite: structuur van ‘{label}’ bijgewerkt (dataversie {v})",
- "ver.r_golem": "vóór de Golem Lite-update"
+ "ver.r_golem": "vóór de Golem Lite-update",
+ "golem.insecure": "SSL-certificaat niet controleren (alleen lokale ontwikkeling met een zelfondertekend certificaat)"
 }

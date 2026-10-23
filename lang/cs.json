@@ -745,5 +745,6 @@
  "golem.cannot_write": "Nelze zapsat {path}: zkontrolujte oprávnění rootu.",
  "golem.log_import": "Golem Lite: struktura „{label}“ importována ({files})",
  "golem.log_refresh": "Golem Lite: struktura „{label}“ aktualizována (verze dat {v})",
- "ver.r_golem": "před aktualizací z Golem Lite"
+ "ver.r_golem": "před aktualizací z Golem Lite",
+ "golem.insecure": "Neověřovat certifikát SSL (jen lokální vývoj s certifikátem podepsaným sám sebou)"
 }

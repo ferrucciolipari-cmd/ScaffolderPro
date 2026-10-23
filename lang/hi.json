@@ -745,5 +745,6 @@
  "golem.cannot_write": "{path} नहीं लिखा जा सकता: रूट की अनुमतियाँ जाँचें।",
  "golem.log_import": "Golem Lite: «{label}» की संरचना इम्पोर्ट हुई ({files})",
  "golem.log_refresh": "Golem Lite: «{label}» की संरचना अपडेट हुई (डेटा संस्करण {v})",
- "ver.r_golem": "Golem Lite अपडेट से पहले"
+ "ver.r_golem": "Golem Lite अपडेट से पहले",
+ "golem.insecure": "SSL प्रमाणपत्र की जाँच न करें (केवल स्व-हस्ताक्षरित प्रमाणपत्र वाले स्थानीय विकास के लिए)"
 }

@@ -70,6 +70,7 @@ function golemStatus(): array {
         'key_hint' => $q ? $q['auth']['hint'] : '',
         'has_key'  => $q ? $q['auth']['has_value'] : false,
         'request'  => $q ? $q['id'] : 0,
+        'insecure' => $q ? !empty($q['options']['insecure']) : false,
         'blueprint' => $bp,
         'writable' => is_writable($rootDir) || is_writable($rootDir . '/' . GOLEM_DIR),
     ];
@@ -139,7 +140,7 @@ function golemCountNodes(array $nodes): int {
  * aggiorna solo blueprint.json e GOLEM.md. $key = chiave in chiaro (solo per config.php nuovo).
  * Restituisce il riepilogo oppure ['error' => …].
  */
-function golemInstall(array $bp, string $key, bool $full): array {
+function golemInstall(array $bp, string $key, bool $full, bool $insecure = false): array {
     global $rootDir;
     $files = [
         'blueprint.json' => json_encode($bp, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE) . "\n",
@@ -157,7 +158,7 @@ function golemInstall(array $bp, string $key, bool $full): array {
     }
     if ($full) {
         $cfgFile = $rootDir . '/' . GOLEM_DIR . '/config.php';
-        $r = golemWrite('config.php', golemConfigPhp($bp, $key), true);
+        $r = golemWrite('config.php', golemConfigPhp($bp, $key, $insecure), true);
         if ($r === 'kept') {
             $out['config_kept'] = true;
             $out['config_other'] = strpos((string)@file_get_contents($cfgFile), (string)$bp['instance']['uuid']) === false;
@@ -341,7 +342,7 @@ function golemMarkdown(array $bp): string {
 }
 
 /** golem/config.php (creato solo se manca: poi è dell'utente). */
-function golemConfigPhp(array $bp, string $key): string {
+function golemConfigPhp(array $bp, string $key, bool $insecure = false): string {
     return "<?php\n"
          . "// Connection to Golem Lite for this front-end — created by Scaffolder Pro (" . date('Y-m-d H:i') . ").\n"
          . "// Contains the API key: golem/.htaccess denies web access to this folder. Never expose it to the browser.\n"
@@ -353,6 +354,7 @@ function golemConfigPhp(array $bp, string $key): string {
          . "    'cache_dir' => __DIR__ . '/cache',   // responses + ETag (created by itself)\n"
          . "    'cache_ttl' => 30,                    // seconds before asking Golem again (with If-None-Match → 304)\n"
          . "    'timeout'   => 10,                    // seconds\n"
+         . "    'verify_ssl' => " . ($insecure ? 'false' : 'true') . ",                // false only for local development (self-signed certificate)\n"
          . "];\n";
 }
 
@@ -405,6 +407,7 @@ class GolemClient
     private $cacheDir;
     private $ttl;
     private $timeout;
+    private $verifySsl;
     /** @var array headers of the last response from Golem (lowercase name => value) */
     public $lastHeaders = [];
     /** @var string where the last result came from: HIT (cache, Golem not asked), 304, 200, STALE (Golem unreachable: old copy) */
@@ -418,6 +421,7 @@ class GolemClient
         $this->cacheDir = rtrim((string)(isset($cfg['cache_dir']) ? $cfg['cache_dir'] : __DIR__ . '/cache'), '/');
         $this->ttl      = max(0, (int)(isset($cfg['cache_ttl']) ? $cfg['cache_ttl'] : 30));
         $this->timeout  = max(1, (int)(isset($cfg['timeout']) ? $cfg['timeout'] : 10));
+        $this->verifySsl = !isset($cfg['verify_ssl']) || $cfg['verify_ssl'] !== false;
         if ($this->base === '' || $this->instance === '') throw new GolemException('golem/config.php: api_base and instance are required');
         if (!function_exists('curl_init')) throw new GolemException('Golem Lite client: the PHP curl extension is required');
     }
@@ -510,6 +514,10 @@ class GolemClient
                 return strlen($line);
             },
         ]);
+        if (!$this->verifySsl) {   // self-signed certificate in local development (verify_ssl = false)
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
         $body   = curl_exec($ch);
         $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $err    = $body === false ? curl_error($ch) : '';

@@ -670,6 +670,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                 <label><?= tx('golem.url') ?> <input type="url" name="url" required spellcheck="false" autocomplete="off" placeholder="https://cms.example.com/private/api/api.php?instance=…&amp;blueprint=1"></label>
                 <label><?= tx('golem.key') ?> <input type="password" name="key" autocomplete="new-password" spellcheck="false"></label>
             </div>
+            <label class="check"><input type="checkbox" name="insecure"> <?= tx('golem.insecure') ?></label>
             <p class="muted"><?= th('golem.files_note') ?></p>
         </div>
         <div class="hrow end modal-foot"><span class="muted" id="golemMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="button" class="sbtn" id="golemRefresh" hidden><?= ic('refresh') ?> <?= tx('golem.refresh') ?></button><button type="submit" class="pbtn" id="golemImport"><?= ic('download') ?> <?= tx('golem.import') ?></button></div>

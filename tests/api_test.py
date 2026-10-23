@@ -245,6 +245,14 @@ r = me.post({'action': 'golem_import', 'url': gurl(), 'key': ''})
 check('reimportazione: config.php tenuto', r.get('ok') and r['result']['config_kept'] and not r['result']['config_other']
       and open(os.path.join(GDIR, 'config.php')).read().endswith('// MINE\n'), r)
 check('reimportazione: client.php riscritto', 'golem/client.php' in r.get('result', {}).get('written', []) and not open(os.path.join(GDIR, 'client.php')).read().endswith('// MINE\n'), r)
+r = me.post({'action': 'golem_import', 'url': gurl(), 'key': '', 'insecure': '1'})
+q = me.get('http_get', id=me.get('golem_status').get('request', 0))
+check('certificato non verificato: salvato nella richiesta', r.get('ok') and q['request']['options']['insecure'] is True and me.get('golem_status')['insecure'] is True, r)
+os.rename(os.path.join(GDIR, 'config.php'), os.path.join(GDIR, 'config.bak'))
+r = me.post({'action': 'golem_import', 'url': gurl(), 'key': '', 'insecure': '1'})
+check('certificato non verificato: verify_ssl false nel nuovo config.php', r.get('ok') and "'verify_ssl' => false" in open(os.path.join(GDIR, 'config.php')).read(), r)
+os.replace(os.path.join(GDIR, 'config.bak'), os.path.join(GDIR, 'config.php'))
+r = me.post({'action': 'golem_import', 'url': gurl(), 'key': ''})
 
 # Contesto di Claude
 r = me.post({'action': 'claude_chat', 'messages': json.dumps([{'role': 'user', 'content': 'GOLEMCTX'}])})

@@ -745,5 +745,6 @@
  "golem.cannot_write": "Não é possível gravar {path}: verifique as permissões da raiz.",
  "golem.log_import": "Golem Lite: estrutura de «{label}» importada ({files})",
  "golem.log_refresh": "Golem Lite: estrutura de «{label}» atualizada (versão dos dados {v})",
- "ver.r_golem": "antes da atualização do Golem Lite"
+ "ver.r_golem": "antes da atualização do Golem Lite",
+ "golem.insecure": "Não verificar o certificado SSL (apenas desenvolvimento local com certificado autoassinado)"
 }
