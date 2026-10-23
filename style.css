@@ -1623,8 +1623,6 @@ body.resizing-v { cursor: ns-resize; user-select: none; }
 .p-dot.tool { background: #6e7681; }
 .root-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 6px 10px; border-top: 1px solid #2d2d30; background: #18181a; font-size: 11px; }
 .root-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.root-keys kbd { font-size: 9.5px; }
-@media (hover: none) { .root-keys { display: none !important; } }
 
 /* ==========================================================================
    VAI AL FILE (⌘P)
@@ -1699,3 +1697,6 @@ dialog.modal.quick-open { padding: 0; width: min(620px, 94vw); align-self: start
 #editorMenu .ctx-item.on .ctx-check { visibility: visible; }
 .ctx-item:disabled { opacity: .4; cursor: not-allowed; background: transparent !important; }
 #editorMenuBtn.on { background: #33373a; color: #fff; }
+
+/* Velo sotto i menu a comparsa: sotto i menu (9999), sopra tutto il resto */
+.menu-overlay { position: fixed; inset: 0; z-index: 9990; background: rgba(0, 0, 0, 0.45); animation: fadeIn 0.15s ease-out; }

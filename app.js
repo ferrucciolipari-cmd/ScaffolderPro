@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavHistory();
     initSetupAuth();
     initLogout();
+    initMenuOverlay();
 
     $('#rootName').textContent = baseName(APP.rootDir) || APP.rootDir;
     $('#welcomeRoot').textContent = L('js.working_root', { path: APP.rootDir });
@@ -2120,6 +2121,18 @@ function initSettings() {
             toast(L('js.settings_saved'));
         });
     });
+}
+
+// Velo sotto i menu a comparsa: visibile finché uno dei menu è aperto. Ogni menu si chiude già con un clic fuori
+// (il clic sul velo arriva al document); il tasto destro sul velo chiude senza aprire il menu del browser.
+function initMenuOverlay() {
+    const overlay = $('#menuOverlay');
+    const menus = $$('.ctx-menu');
+    const sync = () => { overlay.hidden = !menus.some(m => !m.hidden); };
+    const mo = new MutationObserver(sync);
+    menus.forEach(m => mo.observe(m, { attributes: true, attributeFilter: ['hidden'] }));
+    overlay.addEventListener('contextmenu', (e) => { e.preventDefault(); overlay.click(); });
+    overlay.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
 }
 
 // Esci: il login di questo browser viene cancellato; la pagina torna al modulo di accesso

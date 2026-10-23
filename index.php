@@ -108,8 +108,6 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                     <span><i class="p-dot rw"></i> <?= tx('rp.writable') ?></span>
                     <span><i class="p-dot ro"></i> <?= tx('rp.readonly') ?></span>
                     <span><i class="p-dot tool"></i> <?= tx('rp.tool') ?></span>
-                    <span class="spacer"></span>
-                    <span class="root-keys"><kbd>↑</kbd><kbd>↓</kbd> <kbd>↵</kbd></span>
                 </div>
             </div>
         </div>
@@ -409,6 +407,9 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <input type="hidden" name="action" value="backup_zip">
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
 </form>
+
+<!-- Velo sotto i menu a comparsa (☰ dell'Explorer, tasto destro, ☰ dell'editor, errori PHP): un clic lo chiude -->
+<div class="menu-overlay" id="menuOverlay" hidden></div>
 
 <!-- Menu azioni dell'Explorer (pulsante hamburger) -->
 <div id="explorerMenu" class="ctx-menu dropdown" role="menu" hidden>
