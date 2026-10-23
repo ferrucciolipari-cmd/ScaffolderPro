@@ -24,6 +24,7 @@ No package installations, no build: just copy the folder and open it in the brow
 - **21 languages**: the interface starts in English; the language is changed from the user button on the top right (flag). Claude responds in the chosen language.
 - **API requests** executed by the server (keys never reach the browser), with cURL import.
 - **Integrated Claude AI**: reads the project and proposes changes that you approve one by one.
+- **Import from Golem Lite**: brings the structure of a [Golem Lite](#-import-from-golem-lite) headless CMS instance into the root, so Claude can build a front-end that reads the contents from the API.
 
 ## 📋 Requirements
 
@@ -120,6 +121,31 @@ If you want Apache to ask for the password too, even before PHP starts, in `.hta
 2. **Uncomment the four lines** removing the initial `#` and write the found path after `AuthUserFile`.
 3. Reload the page. If **Error 500** appears, the path is wrong or the `mod_auth_basic` module is not active:
    put the `#` back in front of the lines and double check the path.
+
+## 🧩 Import from Golem Lite
+
+Scaffolder Pro can prepare a front-end for an instance of the Golem Lite headless CMS. **The contents stay on Golem** (even on
+another domain): Scaffolder Pro imports only the *structure* (languages, sitemaps, models and fields, endpoints), Claude writes the
+front on top of it, and the front reads the updated data from the Golem API at every request.
+
+1. In Golem Lite open **API Keys** of the instance → **Structure for Scaffolder Pro**, copy the link
+   (`…/api.php?instance=…&blueprint=1`) and create a key with the `content.read` scope **without IP or domain filters**
+   (it is used only by the server of the front, never by the browser).
+2. In Scaffolder Pro choose the root of the front, open the ☰ menu of the Explorer → **Import from Golem Lite…**, paste link and key, **Import**.
+   The key is saved on the server like the keys of *API requests* (the browser sees only `••••1234`).
+3. In the root a `golem/` folder appears:
+   - `blueprint.json` — the structure as Golem exports it;
+   - `GOLEM.md` — instructions for Claude: which endpoint for each kind of node, languages, relative permalinks, media, rules;
+   - `client.php` — small PHP 7.2+ client for the front (`golem()->sitemap()`, `->content()`, `->category()`), with a file cache and ETag / `If-None-Match` (304);
+   - `config.php` — API address, instance and key (created only if missing: afterwards it is yours);
+   - `.htaccess` (denies web access to the whole folder) and `.gitignore` (`config.php`, `cache/`).
+4. Ask Claude in the side panel, e.g. *"Build the front-end of this site from the Golem structure"*: when `golem/blueprint.json`
+   exists, `GOLEM.md` and the structure are always in Claude's context.
+5. When the structure changes in Golem (new pages, models, fields), reopen the window and press **Update structure**: only
+   `blueprint.json` and `GOLEM.md` are rewritten (the previous text stays in *Versions*); `config.php`, `client.php` and the front are not touched.
+
+The front written this way has no domain inside: links are relative and the base path is found by itself, so you can move it
+to another domain or subfolder without changing anything (only `golem/config.php` if Golem moves).
 
 ## ⬆️ Upgrading from TreeForge
 

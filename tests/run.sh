@@ -9,7 +9,7 @@
 #
 # Non tocca l'installazione vera: per ogni versione copia il progetto in una cartella temporanea,
 # crea un sito di prova e lo serve con `php -S` (limiti bassi: upload 2 MB, POST 3 MB, 64 MB di memoria),
-# con un finto server dell'API di Anthropic al posto di quello vero.
+# con un finto server dell'API di Anthropic al posto di quello vero e un finto Golem Lite (tests/fake_golem.php).
 # Serve: bash, python3, PHP da riga di comando (Homebrew su macOS: php@7.4, php@8.4, php@8.5…); node è facoltativo.
 # =====================================================================
 set -u
@@ -83,7 +83,7 @@ for f in files:
         if k in en and sorted(re.findall(r'\{\w+\}', v)) != sorted(re.findall(r'\{\w+\}', en[k])):
             bad.append('%s: segnaposto diversi in %s' % (os.path.basename(f), k))
 used = set()
-for f in ['app.js', 'index.php', 'api.php', 'core.php', 'auth.php', 'db.php']:
+for f in ['app.js', 'index.php', 'api.php', 'core.php', 'auth.php', 'db.php', 'golem.php']:
     used |= set(re.findall(r"\b(?:L|t|tx|th)\(\s*'([a-z_]+\.[a-z0-9_]+)'", open(os.path.join(root, f)).read()))
 bad += ['chiave usata ma assente in en.json: ' + k for k in sorted(used - set(en))]
 if bad:
@@ -107,6 +107,8 @@ for b in "${BINS[@]}"; do
     printf '<?php echo json_encode(["ok"=>1]);\n' > "$W/site/api.php"
     FP=$(free_port); AP=$(free_port); SP=$(free_port)
     mkdir -p "$T/fake" && cp "$ROOT/tests/fake_anthropic.php" "$T/fake/index.php"
+    # Finto Golem Lite (blueprint, sitemap, contenuti) sullo stesso server del finto Claude
+    cp "$ROOT/tests/fake_golem.php" "$T/fake/golem.php" && cp "$ROOT/tests/golem_blueprint.json" "$T/fake/"
     sed -i.bak "s#const ANTHROPIC_API_URL  = 'https://api.anthropic.com/v1/messages';#const ANTHROPIC_API_URL  = 'http://127.0.0.1:$FP/index.php';#" "$W/scaffolder-pro/core.php"
     "$b" -S "127.0.0.1:$FP" -t "$T/fake" >/dev/null 2>&1 &
     FPID=$!
@@ -123,7 +125,7 @@ for b in "${BINS[@]}"; do
         python3 -I "$ROOT/tests/big_upload_test.py" "http://127.0.0.1:$AP/scaffolder-pro/" "$W" "$BIG" || FAILED=1
         BIG=0   # una volta basta
     fi
-    python3 -I "$ROOT/tests/api_test.py" "http://127.0.0.1:$AP/scaffolder-pro/" "$W" "$b" "http://127.0.0.1:$SP/" || FAILED=1
+    python3 -I "$ROOT/tests/api_test.py" "http://127.0.0.1:$AP/scaffolder-pro/" "$W" "$b" "http://127.0.0.1:$SP/" "http://127.0.0.1:$FP/golem.php" || FAILED=1
     kill $APID $FPID $SPID 2>/dev/null; wait $APID $FPID $SPID 2>/dev/null
     if [ -s "$T/php_errors.log" ]; then red "  FAIL avvisi o errori nel log di PHP:"; head -20 "$T/php_errors.log"; FAILED=1
     else green "  ok   nessun avviso nel log di PHP"; fi

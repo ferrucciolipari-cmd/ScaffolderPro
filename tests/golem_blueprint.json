@@ -1,0 +1,476 @@
+{
+ "type": "blueprint",
+ "format_version": 1,
+ "generated_at": "2026-10-23T12:00:00+02:00",
+ "data_version": 42,
+ "instance": {
+  "uuid": "9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d",
+  "label": "Sito di prova",
+  "primary_lang": "it",
+  "langs": [
+   {
+    "iso": "it",
+    "locale": "it_IT",
+    "label": "Italiano",
+    "primary": true
+   },
+   {
+    "iso": "en",
+    "locale": "en_GB",
+    "label": "English",
+    "primary": false
+   }
+  ]
+ },
+ "api": {
+  "base": "__BASE__",
+  "auth": "header X-Api-Key (chiave dell'istanza con scope content.read): chiamare l'API dal server del front, mai dal browser",
+  "endpoints": {
+   "content": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&uuid=%7Buuid%7D",
+   "category": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&category=%7Buuid%7D&page=1&limit=50 (+ q, from, to, order, field[chiave]=valore)",
+   "sitemap": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&sitemap=%7Buuid%7D",
+   "openapi": "__BASE__?spec=openapi"
+  },
+  "caching": "risposte con ETag e X-Golem-Data-Version: rimandare If-None-Match per ricevere 304"
+ },
+ "conventions": [
+  "Tutti i testi sono per lingua in langs.{iso}; i permalink sono percorsi relativi senza dominio.",
+  "Le immagini e i file hanno url assoluti verso Golem Lite: non vanno copiati."
+ ],
+ "sitemaps": [
+  {
+   "uuid": "5e2f1a0b-1111-4c2d-9e3f-aaaaaaaaaaaa",
+   "label": "Menu principale",
+   "endpoint": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&sitemap=5e2f1a0b-1111-4c2d-9e3f-aaaaaaaaaaaa",
+   "nodes": [
+    {
+     "uuid": "n0000000-0000-4000-8000-000000000001",
+     "slug": "home",
+     "title": "Home",
+     "langs": {
+      "it": {
+       "permalink": "/"
+      },
+      "en": {
+       "permalink": "/en/"
+      }
+     },
+     "kind": "page",
+     "hidden": false,
+     "seo": {
+      "noindex": false,
+      "no_seo_fields": false
+     },
+     "page": {
+      "model_group": "1",
+      "uuid": "c0000000-0000-4000-8000-000000000001",
+      "published": true,
+      "endpoint": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&uuid=c0000000-0000-4000-8000-000000000001"
+     },
+     "children": []
+    },
+    {
+     "uuid": "n0000000-0000-4000-8000-000000000002",
+     "slug": "chi-siamo",
+     "title": "Chi siamo",
+     "langs": {
+      "it": {
+       "permalink": "/chi-siamo"
+      },
+      "en": {
+       "permalink": "/en/about-us"
+      }
+     },
+     "kind": "page",
+     "hidden": false,
+     "seo": {
+      "noindex": false,
+      "no_seo_fields": false
+     },
+     "page": {
+      "model_group": "1",
+      "uuid": "c0000000-0000-4000-8000-000000000002",
+      "published": true,
+      "endpoint": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&uuid=c0000000-0000-4000-8000-000000000002"
+     },
+     "children": []
+    },
+    {
+     "uuid": "n0000000-0000-4000-8000-000000000003",
+     "slug": "blog",
+     "title": "Blog",
+     "langs": {
+      "it": {
+       "permalink": "/blog"
+      },
+      "en": {
+       "permalink": "/en/blog"
+      }
+     },
+     "kind": "page+category",
+     "hidden": false,
+     "seo": {
+      "noindex": false,
+      "no_seo_fields": false
+     },
+     "page": {
+      "model_group": "1",
+      "uuid": "c0000000-0000-4000-8000-000000000003",
+      "published": true,
+      "endpoint": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&uuid=c0000000-0000-4000-8000-000000000003"
+     },
+     "category": {
+      "model_group": "2",
+      "order_by": "pub_date_desc",
+      "articles_public": 1,
+      "also_in": [],
+      "endpoint": "__BASE__?instance=9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d&category=n0000000-0000-4000-8000-000000000003&page=1&limit=50"
+     },
+     "children": []
+    },
+    {
+     "uuid": "n0000000-0000-4000-8000-000000000004",
+     "slug": "footer",
+     "title": "Footer",
+     "langs": {
+      "it": {
+       "permalink": "/footer"
+      },
+      "en": {
+       "permalink": "/en/footer"
+      }
+     },
+     "kind": "container",
+     "hidden": false,
+     "seo": {
+      "noindex": false,
+      "no_seo_fields": false
+     },
+     "children": [
+      {
+       "uuid": "n0000000-0000-4000-8000-000000000005",
+       "slug": "privacy",
+       "title": "Privacy",
+       "langs": {
+        "it": {
+         "permalink": "/privacy"
+        },
+        "en": {
+         "permalink": "/en/privacy"
+        }
+       },
+       "kind": "page",
+       "hidden": true,
+       "seo": {
+        "noindex": false,
+        "no_seo_fields": false
+       },
+       "page": {
+        "model_group": "1",
+        "uuid": null,
+        "published": false,
+        "endpoint": null
+       },
+       "children": []
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "model_groups": {
+  "1": {
+   "id": 1,
+   "label": "Pagina base",
+   "models": [
+    {
+     "key": "hero",
+     "label": "Hero",
+     "repeatable": false,
+     "fields": [
+      {
+       "key": "titolo",
+       "label": "Titolo",
+       "type": "text",
+       "value": "string",
+       "multilingual": true,
+       "required": true,
+       "max_char": 80
+      },
+      {
+       "key": "sottotitolo",
+       "label": "Sottotitolo",
+       "type": "textarea",
+       "value": "string",
+       "multilingual": true,
+       "required": false
+      },
+      {
+       "key": "immagine",
+       "label": "Immagine",
+       "type": "image",
+       "value": "media {url, alt, width, height, mime} | null",
+       "multilingual": false,
+       "required": false
+      }
+     ]
+    },
+    {
+     "key": "blocchi",
+     "label": "Blocchi",
+     "repeatable": true,
+     "fields": [
+      {
+       "key": "titolo",
+       "label": "Titolo",
+       "type": "text",
+       "value": "string",
+       "multilingual": true,
+       "required": false
+      },
+      {
+       "key": "testo",
+       "label": "Testo",
+       "type": "editor",
+       "value": "string (HTML)",
+       "multilingual": true,
+       "required": false
+      }
+     ]
+    }
+   ],
+   "example": {
+    "from": "page",
+    "node": "n0000000-0000-4000-8000-000000000001",
+    "data": {
+     "type": "page",
+     "uuid": "c0000000-0000-4000-8000-000000000001",
+     "instance": "9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d",
+     "primary_lang": "it",
+     "node": {
+      "uuid": "n0000000-0000-4000-8000-000000000001",
+      "slug": "home",
+      "title": "Home"
+     },
+     "status": 1,
+     "visibility": "pubblico",
+     "published_at": "2026-10-01T10:00:00+02:00",
+     "updated_at": "2026-10-20T09:00:00+02:00",
+     "langs": {
+      "it": {
+       "permalink": "/",
+       "title": "Home",
+       "seo": {
+        "indexable": true,
+        "robots": "index,follow",
+        "meta_title": "Home",
+        "meta_description": "",
+        "tags": [],
+        "og_image": null
+       },
+       "content": {
+        "hero": {
+         "titolo": "Benvenuti",
+         "sottotitolo": "Un sito su Golem",
+         "immagine": {
+          "url": "__BASE__/media/hero.jpg",
+          "alt": "Hero",
+          "width": 1600,
+          "height": 900,
+          "mime": "image/jpeg"
+         }
+        },
+        "blocchi": [
+         {
+          "titolo": "Uno",
+          "testo": "<p>Primo</p>"
+         }
+        ]
+       }
+      },
+      "en": {
+       "permalink": "/en/",
+       "title": "Home",
+       "seo": {
+        "indexable": true,
+        "robots": "index,follow",
+        "meta_title": "Home",
+        "meta_description": "",
+        "tags": [],
+        "og_image": null
+       },
+       "content": {
+        "hero": {
+         "titolo": "Welcome",
+         "sottotitolo": "A site on Golem",
+         "immagine": {
+          "url": "__BASE__/media/hero.jpg",
+          "alt": "Hero",
+          "width": 1600,
+          "height": 900,
+          "mime": "image/jpeg"
+         }
+        },
+        "blocchi": [
+         {
+          "titolo": "One",
+          "testo": "<p>First</p>"
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  },
+  "2": {
+   "id": 2,
+   "label": "Articolo",
+   "models": [
+    {
+     "key": "articolo",
+     "label": "Articolo",
+     "repeatable": false,
+     "fields": [
+      {
+       "key": "abstract",
+       "label": "Abstract",
+       "type": "textarea",
+       "value": "string",
+       "multilingual": true,
+       "required": false
+      },
+      {
+       "key": "corpo",
+       "label": "Corpo",
+       "type": "editor",
+       "value": "string (HTML)",
+       "multilingual": true,
+       "required": true
+      },
+      {
+       "key": "copertina",
+       "label": "Copertina",
+       "type": "image",
+       "value": "media {url, alt, width, height, mime} | null",
+       "multilingual": false,
+       "required": false
+      },
+      {
+       "key": "tipo",
+       "label": "Tipo",
+       "type": "select",
+       "value": "{value, label} | null",
+       "multilingual": false,
+       "required": false,
+       "options": [
+        {
+         "value": "news",
+         "labels": {
+          "it": "Notizia",
+          "en": "News"
+         }
+        },
+        {
+         "value": "event",
+         "labels": {
+          "it": "Evento",
+          "en": "Event"
+         }
+        }
+       ]
+      },
+      {
+       "key": "correlati",
+       "label": "Correlati",
+       "type": "relation",
+       "value": "list of uuid",
+       "multilingual": false,
+       "required": false,
+       "options_from": "articoli delle categorie Menu principale (value = uuid dell'articolo, leggibile con uuid=)"
+      }
+     ]
+    }
+   ],
+   "example": {
+    "from": "article",
+    "node": "n0000000-0000-4000-8000-000000000003",
+    "data": {
+     "type": "article",
+     "uuid": "a0000000-0000-4000-8000-000000000001",
+     "instance": "9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d",
+     "primary_lang": "it",
+     "node": {
+      "uuid": "n0000000-0000-4000-8000-000000000003",
+      "slug": "blog/primo-articolo",
+      "title": "Primo articolo"
+     },
+     "status": 1,
+     "visibility": "pubblico",
+     "published_at": "2026-10-01T10:00:00+02:00",
+     "updated_at": "2026-10-20T09:00:00+02:00",
+     "langs": {
+      "it": {
+       "permalink": "/blog/primo-articolo",
+       "title": "Primo articolo",
+       "seo": {
+        "indexable": true,
+        "robots": "index,follow",
+        "meta_title": "Primo articolo",
+        "meta_description": "",
+        "tags": [],
+        "og_image": null
+       },
+       "content": {
+        "articolo": {
+         "abstract": "Breve",
+         "corpo": "<p>Testo</p>",
+         "copertina": {
+          "url": "__BASE__/media/hero.jpg",
+          "alt": "Hero",
+          "width": 1600,
+          "height": 900,
+          "mime": "image/jpeg"
+         },
+         "tipo": {
+          "value": "news",
+          "label": "Notizia"
+         }
+        }
+       }
+      },
+      "en": {
+       "permalink": "/en/blog/first-post",
+       "title": "First post",
+       "seo": {
+        "indexable": true,
+        "robots": "index,follow",
+        "meta_title": "First post",
+        "meta_description": "",
+        "tags": [],
+        "og_image": null
+       },
+       "content": {
+        "articolo": {
+         "abstract": "Short",
+         "corpo": "<p>Text</p>",
+         "copertina": {
+          "url": "__BASE__/media/hero.jpg",
+          "alt": "Hero",
+          "width": 1600,
+          "height": 900,
+          "mime": "image/jpeg"
+         },
+         "tipo": {
+          "value": "news",
+          "label": "News"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

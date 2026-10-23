@@ -706,6 +706,7 @@ function initExplorer() {
             case 'refresh': refreshTree().then(() => toast(L('js.explorer_refreshed'))); break;
             case 'collapse': state.openFolders.clear(); store('open', []); renderTree(); break;
             case 'quick-open': openQuickOpen(); break;
+            case 'golem': openGolem(); break;
         }
     }));
 
@@ -1720,7 +1721,7 @@ function refreshSplit() {
 // ----------------------------------------------------------------------------
 // VERSIONI, REGISTRO, CESTINO
 // ----------------------------------------------------------------------------
-const REASON = { save: 'ver.r_save', delete: 'ver.r_delete', restore: 'ver.r_restore', legacy: 'ver.r_legacy', replace: 'ver.r_replace', claude: 'ver.r_claude' };
+const REASON = { save: 'ver.r_save', delete: 'ver.r_delete', restore: 'ver.r_restore', legacy: 'ver.r_legacy', replace: 'ver.r_replace', claude: 'ver.r_claude', golem: 'ver.r_golem' };
 
 function loadVersions(path) {
     const tab = tabFor(path);
@@ -3126,6 +3127,7 @@ function initHttp() {
         });
     });
     initCurlImport();
+    initGolem();
     $('#httpList').addEventListener('click', (e) => {
         const it = e.target.closest('[data-req]');
         if (it) openFile('http:' + it.dataset.req);
@@ -3420,6 +3422,66 @@ function initCurlImport() {
                 else if (parsed.req.auth.type !== 'none') $('#hAuthValue').focus();
             });
         });
+    });
+}
+
+// ----------------------------------------------------------------------------
+// IMPORTA DA GOLEM LITE: blueprint dell'istanza in golem/ (la chiave resta sul server)
+// ----------------------------------------------------------------------------
+function golemStateHtml(st) {
+    const b = st.blueprint;
+    let h = '';
+    if (b) h += `<div>${ic('check')} <b>${esc(L('golem.linked', { label: b.label || b.uuid, langs: b.langs.join(', '), v: b.data_version }))}</b></div>`
+        + `<div>${esc(L('golem.updated', { date: b.saved_at }))}</div>`;
+    if (st.linked && !b) h += `<div class="curl-warn">${ic('alert')}<span>${esc(L('golem.no_file'))}</span></div>`;
+    if (!st.writable) h += `<div class="curl-warn">${ic('alert')}<span>${esc(L('golem.not_writable'))}</span></div>`;
+    return h;
+}
+
+function openGolem() {
+    const d = $('#golemDialog'), f = $('#golemForm');
+    $('#golemMsg').textContent = '';
+    f.key.value = '';
+    apiGet('golem_status').then(st => {
+        if (!st.ok) { toast(st.error, 'error'); return; }
+        f.url.value = st.url || '';
+        f.key.placeholder = st.has_key ? L('golem.key_saved', { hint: st.key_hint }) : '';
+        f.key.required = !st.has_key;
+        $('#golemRefresh').hidden = !st.linked;
+        const box = $('#golemState');
+        box.innerHTML = golemStateHtml(st);
+        box.hidden = !box.innerHTML;
+        showModal(d);
+        setTimeout(() => focusSoft(st.linked ? $('#golemRefresh') : f.url), 50);
+    });
+}
+
+function initGolem() {
+    const d = $('#golemDialog'), f = $('#golemForm');
+    const busy = (on) => { $('#golemImport').disabled = on; $('#golemRefresh').disabled = on; $('#golemMsg').textContent = on ? L('golem.working') : ''; };
+    const done = (res, kind) => {
+        busy(false);
+        if (!res.ok) { $('#golemMsg').textContent = ''; toast(res.error, 'error'); return; }
+        const r = res.result;
+        d.close();
+        toast(L(kind === 'import' ? 'golem.done_import' : 'golem.done_refresh', { nodes: r.nodes, groups: r.groups }));
+        if (r.config_other) toast(L('golem.config_other'), 'warn');
+        else if (r.config_kept) toast(L('golem.config_kept'), 'warn');
+        refreshHttpList();
+        // Le schede aperte (senza modifiche) dei file riscritti mostrano il testo nuovo
+        state.tabs.filter(t => t.kind === 'code' && r.written.includes(t.path) && !isDirty(t)).forEach(t => {
+            apiGet('get_file', { file: t.path }).then(fr => { if (fr.ok) { setTabFromDisk(t, fr); updateTopbar(); } });
+        });
+        refreshAll().then(() => { if (kind === 'import') openFile('golem/GOLEM.md'); });
+    };
+    f.addEventListener('submit', (e) => {
+        e.preventDefault();
+        busy(true);
+        apiPost({ action: 'golem_import', url: f.url.value.trim(), key: f.key.value.trim() }).then(res => done(res, 'import')).catch(err => { busy(false); toast(L('js.network_error') + ': ' + err, 'error'); });
+    });
+    $('#golemRefresh').addEventListener('click', () => {
+        busy(true);
+        apiPost({ action: 'golem_refresh' }).then(res => done(res, 'refresh')).catch(err => { busy(false); toast(L('js.network_error') + ': ' + err, 'error'); });
     });
 }
 

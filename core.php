@@ -1605,3 +1605,5 @@ function humanSize(int $bytes): string {
     if ($bytes < 1073741824) return round($bytes / 1048576, 1) . ' MB';
     return round($bytes / 1073741824, 2) . ' GB';
 }
+
+require_once __DIR__ . '/golem.php';

@@ -107,6 +107,10 @@ switch ($action) {
         jsonOut(['ok' => true, 'request' => httpPublicRequest($r), 'response' => httpGetResponse((int)$r['id'])]);
     }
 
+    // Golem Lite: collegamento della root attuale e blueprint presente
+    case 'golem_status':
+        jsonOut(['ok' => true] + golemStatus());
+
     // Selettore della root: cartelle dello spazio web con permessi e stato
     case 'get_roots': {
         @set_time_limit(60);
@@ -934,6 +938,48 @@ switch ($action) {
         jsonOut(['ok' => true, 'response' => $resp]);
     }
 
+    // K5. GOLEM LITE: importa la struttura (blueprint) di un'istanza in golem/ oppure la aggiorna.
+    // La connessione è una richiesta API (chiave protetta come le altre) legata alla root.
+    case 'golem_import': {
+        @set_time_limit(60);
+        $url = golemBlueprintUrl((string)($_POST['url'] ?? ''));
+        if ($url === '') fail(t('golem.url_invalid'));
+        $id  = golemLinkId();
+        $old = $id ? httpGetRequest($id) : null;
+        $key = trim(str_replace(["\r", "\n"], '', (string)($_POST['key'] ?? '')));
+        if ($key === '' && $old) $key = (string)$old['auth']['value'];
+        if ($key === '') fail(t('golem.key_missing'));
+        $data = ['Golem Lite blueprint · ' . basename($rootDir), 'GET', $url, '[]',
+                 json_encode(['type' => 'header', 'name' => 'X-Api-Key', 'value' => $key], JSON_UNESCAPED_UNICODE), '', json_encode(['insecure' => false])];
+        if ($old) {
+            db()->prepare("UPDATE http_requests SET name = ?, method = ?, url = ?, headers = ?, auth = ?, body = ?, options = ?, updated_at = datetime('now','localtime') WHERE id = ?")
+                ->execute(array_merge($data, [$id]));
+        } else {
+            db()->prepare('INSERT INTO http_requests (name, method, url, headers, auth, body, options) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute($data);
+            $id = (int)db()->lastInsertId();
+        }
+        golemSetLink($id);
+        $got = golemFetch(httpGetRequest($id));
+        if (isset($got['error'])) { addLog('error', 'Golem Lite: ' . $got['error']); fail($got['error']); }
+        $res = golemInstall($got['bp'], $key, true);
+        if (isset($res['error'])) { addLog('error', 'Golem Lite: ' . $res['error']); fail($res['error']); }
+        db()->prepare('UPDATE http_requests SET name = ? WHERE id = ?')->execute(['Golem Lite blueprint · ' . ($res['label'] !== '' ? $res['label'] : basename($rootDir)), $id]);
+        addLog('create', t('golem.log_import', ['label' => $res['label'], 'files' => implode(', ', $res['written']) ?: '—']));
+        jsonOut(['ok' => true, 'result' => $res, 'status' => golemStatus()]);
+    }
+
+    case 'golem_refresh': {
+        @set_time_limit(60);
+        $id = golemLinkId();
+        if (!$id) fail(t('golem.not_linked'));
+        $got = golemFetch(httpGetRequest($id));
+        if (isset($got['error'])) { addLog('error', 'Golem Lite: ' . $got['error']); fail($got['error']); }
+        $res = golemInstall($got['bp'], '', false);
+        if (isset($res['error'])) { addLog('error', 'Golem Lite: ' . $res['error']); fail($res['error']); }
+        addLog($res['written'] ? 'save' : 'create', t('golem.log_refresh', ['label' => $res['label'], 'v' => $res['data_version']]));
+        jsonOut(['ok' => true, 'result' => $res, 'status' => golemStatus()]);
+    }
+
     // L. IMPOSTAZIONI GENERALI
     case 'save_settings': {
         $cfg = loadConfig();
@@ -1117,6 +1163,9 @@ switch ($action) {
                   . " → HTTP {$resp['status']} ({$resp['created_at']}, " . humanSize((int)$resp['size']) . ($cut || $resp['truncated'] ? ', truncated' : '') . ")\n"
                   . ($resp['error'] ? "Error: {$resp['error']}\n" : "```\n$txt\n```\n");
         }
+        // Root collegata a Golem Lite: istruzioni (golem/GOLEM.md) e struttura sempre nel contesto
+        $golemCtx = golemClaudeContext();
+        $ctx .= $golemCtx;
         $active = cleanRelPath($_POST['active'] ?? '');
         $who    = $cfg['dev_name'] !== '' ? "The developer's name is {$cfg['dev_name']}. " : '';
         $system = "You are the programming assistant built into Scaffolder Pro, a VS Code-style web editor for PHP sites on Apache. {$who}"
@@ -1128,6 +1177,9 @@ switch ($action) {
                 . "and approves or discards each proposal, so do not repeat in your reply the code you already proposed with the tools; "
                 . "briefly explain what you proposed. Before proposing a change read the relevant part of the file, so the text to replace "
                 . "is identical. You cannot delete files or run commands. "
+                . ($golemCtx !== '' ? 'This project is a front-end for the headless CMS Golem Lite: the structure is in golem/blueprint.json and the rules '
+                    . 'in golem/GOLEM.md (both in the context). Follow GOLEM.md: contents are read at runtime through golem/client.php, the API key '
+                    . 'stays on the server, links are relative and the front works on any domain or subfolder. ' : '')
                 . ($active !== '' ? "The file currently open in the foreground is $active." : '');
 
         $body = [

@@ -431,6 +431,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <button type="button" class="ctx-item" data-act="upload" role="menuitem"><?= ic('upload') ?> <?= tx('menu.upload') ?></button>
     <button type="button" class="ctx-item" data-act="zip" role="menuitem"><?= ic('archive') ?> <?= tx('menu.zip_selection') ?></button>
     <div class="ctx-sep"></div>
+    <button type="button" class="ctx-item" data-act="golem" role="menuitem"><?= ic('api') ?> <?= tx('menu.golem') ?></button>
+    <div class="ctx-sep"></div>
     <button type="button" class="ctx-item" data-act="quick-open" role="menuitem"><?= ic('search') ?> <?= tx('qo.title') ?> <kbd>⌘P</kbd></button>
     <button type="button" class="ctx-item" data-act="collapse" role="menuitem"><?= ic('collapse') ?> <?= tx('menu.collapse_all') ?></button>
 </div>
@@ -655,6 +657,23 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <div class="qo-input"><?= ic('list') ?><input type="text" id="symInput" placeholder="<?= tx('sym.placeholder') ?>" autocomplete="off" spellcheck="false"></div>
     <div id="symList" class="qo-list"></div>
     <div class="qo-foot muted"><span><kbd>↑</kbd><kbd>↓</kbd> <?= tx('qo.move') ?></span><span><kbd>↵</kbd> <?= tx('qo.open') ?></span><span><kbd>Esc</kbd> <?= tx('common.close') ?></span></div>
+</dialog>
+
+<!-- Importa da Golem Lite: struttura (blueprint) di un'istanza in golem/ -->
+<dialog id="golemDialog" class="modal framed">
+    <form id="golemForm" method="dialog">
+        <div class="modal-head"><h3><?= ic('api') ?> <?= tx('golem.title') ?></h3><button type="button" class="icon-btn" data-close title="<?= tx('common.close') ?>"><?= ic('x') ?></button></div>
+        <div class="modal-body">
+            <p class="muted"><?= th('golem.help') ?></p>
+            <div id="golemState" class="curl-preview" hidden></div>
+            <div class="settings-grid one">
+                <label><?= tx('golem.url') ?> <input type="url" name="url" required spellcheck="false" autocomplete="off" placeholder="https://cms.example.com/private/api/api.php?instance=…&amp;blueprint=1"></label>
+                <label><?= tx('golem.key') ?> <input type="password" name="key" autocomplete="new-password" spellcheck="false"></label>
+            </div>
+            <p class="muted"><?= th('golem.files_note') ?></p>
+        </div>
+        <div class="hrow end modal-foot"><span class="muted" id="golemMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.cancel') ?></button><button type="button" class="sbtn" id="golemRefresh" hidden><?= ic('refresh') ?> <?= tx('golem.refresh') ?></button><button type="submit" class="pbtn" id="golemImport"><?= ic('download') ?> <?= tx('golem.import') ?></button></div>
+    </form>
 </dialog>
 
 <!-- Primo avvio: password di accesso creata dall'interfaccia -->
