@@ -4298,6 +4298,20 @@ function initEditorTools() {
         editor.commands.addCommand({ name: 'gotoline', bindKey: { win: 'Ctrl-G|Ctrl-L', mac: 'Ctrl-G|Command-L' }, exec: () => openGotoLine() });
         editor.commands.addCommand({ name: 'goToSymbol', bindKey: { win: 'Ctrl-Shift-O', mac: 'Command-Shift-O' }, exec: () => openSymbols() });
         editor.commands.addCommand({ name: 'emmetExpand', bindKey: { win: 'Tab', mac: 'Tab' }, exec: (ed) => emmetExpand(ed) });
+        // Mac: tenendo premuta una lettera macOS apre il menu delle lettere accentate (à á â…) e non la ripete.
+        // Le lettere semplici (senza ⌘ ⌃ ⌥) le scrive l'editor, così il menu non parte e la ripetizione del tasto
+        // funziona come in un editor nativo. Restano al Mac: ⌥ (es. [ ] { } @ # sulla tastiera italiana),
+        // tasti morti, composizione (cinese, giapponese, coreano…), cifre, punteggiatura e spazi.
+        if (IS_MAC && !IS_TOUCH) {
+            editor.container.addEventListener('keydown', (e) => {
+                if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing || e.keyCode === 229) return;
+                if (typeof e.key !== 'string' || e.key.length !== 1 || !/^\p{L}$/u.test(e.key)) return;
+                if (editor.getReadOnly() || document.activeElement !== editor.textInput.getElement()) return;
+                e.preventDefault();
+                e.stopPropagation();
+                editor.execCommand('insertstring', e.key);
+            }, true);
+        }
         // Con la tendina dei suggerimenti aperta Tab sceglierebbe il suggerimento: un'abbreviazione con operatori
         // (ul>li, .box, p*3…) ha la precedenza, la tendina si chiude
         editor.container.addEventListener('keydown', (e) => {
