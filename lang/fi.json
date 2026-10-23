@@ -584,7 +584,6 @@
  "rp.readonly_title": "Voit nähdä tiedostot mutta et muokata niitä (ei kirjoitusoikeutta)",
  "rp.search_ph": "Hae kansiota…",
  "rp.tool": "Scaffolder Pro (ei valittavissa)",
- "rp.truncated": "Liikaa kansioita: vain ensimmäiset näytetään. Muille käytä \"Muu kansio…\".",
  "rp.workspace": "Verkkotila",
  "rp.writable": "Kirjoitettava",
  "rp.writable_title": "Voit nähdä ja muokata tiedostoja ja kansioita",
@@ -640,5 +639,7 @@
  "auth.login_note": "Pysyt kirjautuneena tässä selaimessa, kunnes kirjaudut ulos.",
  "auth.logout": "Kirjaudu ulos",
  "auth.logout_title": "Kirjaudu ulos ({user})",
- "auth.logout_dirty": "Joissakin välilehdissä on tallentamattomia muutoksia. Kirjaudutaanko silti ulos?"
+ "auth.logout_dirty": "Joissakin välilehdissä on tallentamattomia muutoksia. Kirjaudutaanko silti ulos?",
+ "rp.expand": "Avaa kansio",
+ "rp.collapse": "Sulje kansio"
 }

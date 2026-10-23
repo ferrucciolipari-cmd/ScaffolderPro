@@ -584,7 +584,6 @@
  "rp.readonly_title": "Vous pouvez voir les fichiers mais pas les modifier (pas de droit d'écriture)",
  "rp.search_ph": "Chercher un dossier…",
  "rp.tool": "Scaffolder Pro (non sélectionnable)",
- "rp.truncated": "Trop de dossiers : seuls les premiers sont listés. Pour les autres, utilisez « Autre dossier… ».",
  "rp.workspace": "Espace web",
  "rp.writable": "Modifiable",
  "rp.writable_title": "Vous pouvez voir et modifier fichiers et dossiers",
@@ -640,5 +639,7 @@
  "auth.login_note": "Vous restez connecté sur ce navigateur jusqu'à la déconnexion.",
  "auth.logout": "Déconnexion",
  "auth.logout_title": "Se déconnecter ({user})",
- "auth.logout_dirty": "Certains onglets ont des modifications non enregistrées. Se déconnecter quand même ?"
+ "auth.logout_dirty": "Certains onglets ont des modifications non enregistrées. Se déconnecter quand même ?",
+ "rp.expand": "Ouvrir le dossier",
+ "rp.collapse": "Fermer le dossier"
 }

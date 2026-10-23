@@ -229,7 +229,10 @@ function applyRightVisibility() {
 // ----------------------------------------------------------------------------
 // SELETTORE ROOT: cartelle dello spazio web (albero indentato) con ricerca e permessi
 // ----------------------------------------------------------------------------
-const rootPicker = { items: [], loaded: false, loading: null, query: '', onlyWritable: false, focus: 0, visible: [] };
+// Albero richiudibile: si parte dal primo livello (più il percorso fino alla root attuale) e si aprono i rami.
+// Con una ricerca o "Solo modificabili" si vedono solo i risultati con le cartelle che li contengono.
+const rootPicker = { items: [], loaded: false, loading: null, query: '', onlyWritable: false, focus: 0, visible: [],
+    open: new Set(loadGlobal('rootopen', [])), byPath: new Map(), kids: new Map() };
 
 function initRootSelect() {
     const picker = $('#rootPicker'), trigger = $('#rootTrigger'), dropdown = $('#rootDropdown');
@@ -263,16 +266,33 @@ function initRootSelect() {
     clearBtn.addEventListener('click', () => { input.value = ''; input.dispatchEvent(new Event('input')); input.focus(); });
     input.addEventListener('keydown', (e) => {
         const n = rootPicker.visible.length;
+        const cur = rootPicker.visible[rootPicker.focus];
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault();
             let i = rootPicker.focus;
-            // Salta le cartelle che non si possono scegliere
+            // Salta le cartelle in cui non si può entrare (Scaffolder Pro, senza accesso)
             for (let k = 0; k < n; k++) {
                 i = (i + (e.key === 'ArrowDown' ? 1 : -1) + n) % n;
-                if (rootSelectable(rootPicker.visible[i])) break;
+                if (rootNavigable(rootPicker.visible[i])) break;
             }
             rootPicker.focus = i;
             highlightRootRow();
+        } else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && cur && !rootFiltering()
+                   && (input.selectionStart === input.value.length || !input.value)) {
+            // Come nell'Explorer: → apre il ramo (o scende al primo figlio), ← lo chiude (o risale al genitore)
+            const isOpen = rootPicker.open.has(cur.path);
+            if (e.key === 'ArrowRight' && rootExpandable(cur)) {
+                e.preventDefault();
+                if (!isOpen) toggleRootBranch(cur.path);
+                else if (rootPicker.visible[rootPicker.focus + 1] && rootPicker.visible[rootPicker.focus + 1].depth > cur.depth) { rootPicker.focus++; highlightRootRow(); }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (isOpen && rootExpandable(cur)) toggleRootBranch(cur.path);
+                else {
+                    const p = rootPicker.visible.findIndex(it => it.path === parentOf(cur.path) && it.group === 'workspace');
+                    if (p >= 0) { rootPicker.focus = p; highlightRootRow(); }
+                }
+            }
         } else if (e.key === 'Enter') {
             e.preventDefault();
             const it = rootPicker.visible[rootPicker.focus];
@@ -297,8 +317,10 @@ function initRootSelect() {
         if (path && path.trim()) selectNewRoot(path.trim());
     });
     list.addEventListener('click', (e) => {
+        const chev = e.target.closest('[data-toggle]');
+        if (chev) { e.stopPropagation(); toggleRootBranch(chev.dataset.toggle); return; }
         const row = e.target.closest('.root-item');
-        if (!row || row.classList.contains('is-disabled')) return;
+        if (!row || row.classList.contains('is-disabled') || row.classList.contains('is-current')) return;
         close();
         selectNewRoot(row.dataset.path);
     });
@@ -310,6 +332,58 @@ function initRootSelect() {
 }
 
 const rootSelectable = (it) => it && !it.tool && it.readable && !it.current;
+const rootNavigable = (it) => it && !it.tool && it.readable;
+const rootFiltering = () => !!(rootPicker.query || rootPicker.onlyWritable);
+/** Si può aprire: cartella dell'albero con sottocartelle (se già lette, almeno una visibile). */
+const rootExpandable = (it) => it && it.group === 'workspace' && rootNavigable(it) && it.dirs_n > 0
+    && !(it.scanned && !(rootPicker.kids.get(it.path) || []).length);
+
+/** Indici dell'albero: percorso → cartella, percorso → sottocartelle (nell'ordine della lettura). */
+function indexRootPicker() {
+    rootPicker.byPath = new Map();
+    rootPicker.kids = new Map();
+    rootPicker.items.forEach(it => {
+        if (it.group !== 'workspace') return;
+        rootPicker.byPath.set(it.path, it);
+        if (it.depth > 0) {
+            const p = parentOf(it.path);
+            if (!rootPicker.kids.has(p)) rootPicker.kids.set(p, []);
+            rootPicker.kids.get(p).push(it);
+        }
+    });
+}
+
+function saveRootOpen() {
+    storeGlobal('rootopen', [...rootPicker.open].slice(-300));
+}
+
+/** Apre/chiude un ramo; se le sottocartelle non sono ancora state lette le chiede al server. */
+function toggleRootBranch(path) {
+    const it = rootPicker.byPath.get(path);
+    if (!it) return;
+    if (rootPicker.open.has(path)) {
+        rootPicker.open.delete(path);
+        saveRootOpen();
+        renderRootPicker();
+        return;
+    }
+    rootPicker.open.add(path);
+    saveRootOpen();
+    if (it.scanned || it.loadingKids) { renderRootPicker(); return; }
+    it.loadingKids = true;
+    renderRootPicker();
+    apiGet('get_root_children', { path, depth: it.depth }).then(res => {
+        it.loadingKids = false;
+        if (!res.ok) { toast(res.error, 'error'); renderRootPicker(); return; }
+        it.scanned = true;
+        const pos = rootPicker.items.indexOf(it) + 1;
+        const add = (res.items || []).filter(k => !rootPicker.byPath.has(k.path))
+            .map(k => Object.assign(k, { rel: (it.rel || '') + '/' + k.name }));
+        rootPicker.items.splice(pos, 0, ...add);
+        indexRootPicker();
+        renderRootPicker();
+    }).catch(() => { it.loadingKids = false; renderRootPicker(); });
+}
 
 function loadRootPicker() {
     if (rootPicker.loaded) return Promise.resolve();
@@ -319,8 +393,12 @@ function loadRootPicker() {
         rootPicker.loading = null;
         if (!res.ok) { toast(res.error, 'error'); return; }
         rootPicker.items = res.items || [];
-        rootPicker.truncated = !!res.truncated;
         rootPicker.loaded = true;
+        indexRootPicker();
+        // Prima apertura: aperto il primo livello; sempre aperto il percorso fino alla root attuale
+        if (loadGlobal('rootopen', null) === null) rootPicker.items.forEach(it => { if (it.group === 'workspace' && it.depth === 0) rootPicker.open.add(it.path); });
+        for (let p = parentOf(APP.rootDir); p && rootPicker.byPath.has(p); p = parentOf(p)) rootPicker.open.add(p);
+        saveRootOpen();
     }).catch(err => { rootPicker.loading = null; toast(L('js.network_error') + ': ' + err, 'error'); });
     return rootPicker.loading;
 }
@@ -340,19 +418,30 @@ function renderRootPicker(scrollToCurrent = false) {
     if (!rootPicker.loaded && !rootPicker.items.length) return;
     const q = rootPicker.query;
     const items = rootPicker.items;
-    // Con una ricerca restano le cartelle trovate più i loro genitori, così si vede dove stanno
-    const keep = new Set();
-    items.forEach((it, i) => {
-        if (rootPicker.onlyWritable && !it.writable && !it.current) return;
-        if (q && !(it.name + ' ' + it.rel).toLowerCase().includes(q)) return;
-        keep.add(i);
-        if (q && it.group === 'workspace') {
-            for (let j = i - 1, d = it.depth; j >= 0 && d > 0; j--) {
-                if (items[j].group === 'workspace' && items[j].depth < d) { keep.add(j); d = items[j].depth; }
+    const filtering = rootFiltering();
+    // Con un filtro restano le cartelle trovate più quelle che le contengono (tutto aperto)
+    let keep = null;
+    if (filtering) {
+        keep = new Set();
+        items.forEach(it => {
+            if (rootPicker.onlyWritable && !it.writable && !it.current) return;
+            if (q && !(it.name + ' ' + it.rel).toLowerCase().includes(q)) return;
+            keep.add(it);
+            if (it.group === 'workspace') {
+                for (let p = parentOf(it.path), a = rootPicker.byPath.get(p); a; p = parentOf(p), a = rootPicker.byPath.get(p)) keep.add(a);
             }
-        }
+        });
+    }
+    // Ordine dell'albero: livello superiore, rami dello spazio web (solo quelli aperti), recenti
+    const visible = [];
+    const walk = (it) => {
+        if (!keep || keep.has(it)) visible.push(it);
+        if (filtering || rootPicker.open.has(it.path)) (rootPicker.kids.get(it.path) || []).forEach(walk);
+    };
+    items.forEach(it => {
+        if (it.group !== 'workspace') { if (!keep || keep.has(it)) visible.push(it); }
+        else if (it.depth === 0) walk(it);
     });
-    const visible = items.filter((it, i) => keep.has(i));
     rootPicker.visible = visible;
     if (!visible.length) { list.innerHTML = `<div class="log-empty">${esc(L('rp.none'))}</div>`; return; }
     const groupTitle = { up: L('js.root_up'), workspace: L('rp.workspace'), recent: L('js.root_recent') };
@@ -372,14 +461,20 @@ function renderRootPicker(scrollToCurrent = false) {
             : `<span class="perm-badge ro" title="${esc(L('rp.readonly_title'))}">R</span>`;
         const counts = !it.tool && it.readable && it.group === 'workspace' ? `<span class="root-counts">${esc(L('rp.counts', { d: it.dirs_n, f: it.files_n }))}</span>` : '';
         const name = it.group === 'workspace' ? it.name : (it.group === 'up' ? '↰ ' + it.name : it.path);
+        // Freccina per aprire/chiudere il ramo (con un filtro i rami sono tutti aperti)
+        const exp = rootExpandable(it);
+        const isOpen = filtering || rootPicker.open.has(it.path);
+        const chev = it.group !== 'workspace' ? ''
+            : exp && !filtering ? `<span class="root-chev${isOpen ? ' open' : ''}${it.loadingKids ? ' loading' : ''}" data-toggle="${esc(it.path)}" title="${esc(L(isOpen ? 'rp.collapse' : 'rp.expand'))}">${CHEVRON}</span>`
+            : `<span class="root-chev${exp && isOpen ? ' open static' : ' none'}">${exp ? CHEVRON : ''}</span>`;
         return head + `<div class="root-item${it.current ? ' is-current' : ''}${disabled ? ' is-disabled' : ''}" role="option" data-i="${i}" data-path="${esc(it.path)}"`
             + ` style="--depth:${it.group === 'workspace' ? it.depth : 0}" title="${esc(it.path)}">`
-            + `${ic('folder')}<span class="root-item-name">${hl(name)}${it.current ? ` <em>(${esc(L('js.root_current'))})</em>` : ''}</span>`
+            + chev + `${ic('folder')}<span class="root-item-name">${hl(name)}${it.current ? ` <em>(${esc(L('js.root_current'))})</em>` : ''}</span>`
             + `<span class="root-item-meta">${counts}${badge}</span></div>`;
-    }).join('') + (rootPicker.truncated ? `<div class="log-empty">${esc(L('rp.truncated'))}</div>` : '');
-    if (!rootSelectable(visible[rootPicker.focus])) {
+    }).join('');
+    if (scrollToCurrent || !rootNavigable(visible[rootPicker.focus])) {
         const cur = visible.findIndex(it => it.current);
-        const first = visible.findIndex(rootSelectable);
+        const first = visible.findIndex(filtering ? rootSelectable : rootNavigable);
         rootPicker.focus = scrollToCurrent && cur >= 0 ? cur : Math.max(0, first);
     }
     highlightRootRow(true, scrollToCurrent);

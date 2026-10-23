@@ -584,7 +584,6 @@
  "rp.readonly_title": "Podes ver os ficheiros mas não modificá-los (sem permissão de escrita)",
  "rp.search_ph": "Procurar pasta…",
  "rp.tool": "Scaffolder Pro (não selecionável)",
- "rp.truncated": "Demasiadas pastas: só as primeiras são listadas. Para as outras usa \"Outra pasta…\".",
  "rp.workspace": "Espaço web",
  "rp.writable": "Editável",
  "rp.writable_title": "Podes ver e modificar ficheiros e pastas",
@@ -640,5 +639,7 @@
  "auth.login_note": "A sessão fica aberta neste navegador até saíres.",
  "auth.logout": "Sair",
  "auth.logout_title": "Terminar sessão ({user})",
- "auth.logout_dirty": "Alguns separadores têm alterações não guardadas. Sair mesmo assim?"
+ "auth.logout_dirty": "Alguns separadores têm alterações não guardadas. Sair mesmo assim?",
+ "rp.expand": "Abrir pasta",
+ "rp.collapse": "Fechar pasta"
 }

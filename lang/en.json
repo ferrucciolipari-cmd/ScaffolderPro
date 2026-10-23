@@ -584,7 +584,6 @@
  "rp.readonly_title": "You can view the files but not modify them (no write permission)",
  "rp.search_ph": "Search folder…",
  "rp.tool": "Scaffolder Pro (not selectable)",
- "rp.truncated": "Too many folders: only the first ones are listed. Use \"Other folder…\" for the others.",
  "rp.workspace": "Web space",
  "rp.writable": "Writable",
  "rp.writable_title": "You can view and modify files and folders",
@@ -640,5 +639,7 @@
  "auth.login_note": "You stay signed in on this browser until you sign out.",
  "auth.logout": "Sign out",
  "auth.logout_title": "Sign out ({user})",
- "auth.logout_dirty": "Some tabs have unsaved changes. Sign out anyway?"
+ "auth.logout_dirty": "Some tabs have unsaved changes. Sign out anyway?",
+ "rp.expand": "Open folder",
+ "rp.collapse": "Close folder"
 }

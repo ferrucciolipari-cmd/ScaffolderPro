@@ -584,7 +584,6 @@
  "rp.readonly_title": "Puedes ver los archivos pero no modificarlos (sin permiso de escritura)",
  "rp.search_ph": "Buscar carpeta…",
  "rp.tool": "Scaffolder Pro (no seleccionable)",
- "rp.truncated": "Demasiadas carpetas: solo se muestran las primeras. Para las demás usa \"Otra carpeta…\".",
  "rp.workspace": "Espacio web",
  "rp.writable": "Editable",
  "rp.writable_title": "Puedes ver y modificar archivos y carpetas",
@@ -640,5 +639,7 @@
  "auth.login_note": "La sesión sigue abierta en este navegador hasta que la cierres.",
  "auth.logout": "Salir",
  "auth.logout_title": "Cerrar sesión ({user})",
- "auth.logout_dirty": "Algunas pestañas tienen cambios sin guardar. ¿Salir de todos modos?"
+ "auth.logout_dirty": "Algunas pestañas tienen cambios sin guardar. ¿Salir de todos modos?",
+ "rp.expand": "Abrir carpeta",
+ "rp.collapse": "Cerrar carpeta"
 }

@@ -584,7 +584,6 @@
  "rp.readonly_title": "你可以查看文件，但不能修改（没有写入权限）",
  "rp.search_ph": "搜索文件夹…",
  "rp.tool": "Scaffolder Pro（不可选择）",
- "rp.truncated": "文件夹太多：只列出了前面的部分。其他请使用“其他文件夹…”。",
  "rp.workspace": "网站空间",
  "rp.writable": "可写",
  "rp.writable_title": "你可以查看和修改文件及文件夹",
@@ -640,5 +639,7 @@
  "auth.login_note": "在你退出之前，此浏览器会一直保持登录。",
  "auth.logout": "退出",
  "auth.logout_title": "退出登录（{user}）",
- "auth.logout_dirty": "有些标签页有未保存的修改。仍要退出吗？"
+ "auth.logout_dirty": "有些标签页有未保存的修改。仍要退出吗？",
+ "rp.expand": "展开文件夹",
+ "rp.collapse": "折叠文件夹"
 }

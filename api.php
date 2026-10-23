@@ -114,6 +114,13 @@ switch ($action) {
         jsonOut(['ok' => true, 'current' => $rootDir, 'base' => $defaultRoot, 'items' => $scan['items'], 'truncated' => $scan['truncated']]);
     }
 
+    // Selettore della root: sottocartelle di un ramo aperto che la prima lettura non aveva raggiunto
+    case 'get_root_children': {
+        $kids = rootChildren((string)($_GET['path'] ?? ''), max(0, (int)($_GET['depth'] ?? 0)), (string)($_GET['base'] ?? ''));
+        if ($kids === null) fail(t('api.target_invalid'));
+        jsonOut(['ok' => true, 'items' => $kids]);
+    }
+
     case 'get_side':
         jsonOut(['ok' => true, 'logs' => getLogs(max(1, min(MAX_LOGS, (int)($_GET['limit'] ?? 80)))), 'trash' => getTrash()]);
 

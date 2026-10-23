@@ -584,7 +584,6 @@
  "rp.readonly_title": "Du kan se filerne, men ikke ændre dem (mangler skriverettighed)",
  "rp.search_ph": "Søg mappe…",
  "rp.tool": "Scaffolder Pro (kan ikke vælges)",
- "rp.truncated": "For mange mapper: kun de første vises. Brug \"Anden mappe…\" til resten.",
  "rp.workspace": "Webområde",
  "rp.writable": "Skrivbar",
  "rp.writable_title": "Du kan se og ændre filer og mapper",
@@ -640,5 +639,7 @@
  "auth.login_note": "Du forbliver logget ind i denne browser, indtil du logger ud.",
  "auth.logout": "Log ud",
  "auth.logout_title": "Log ud ({user})",
- "auth.logout_dirty": "Nogle faner har ikke-gemte ændringer. Log ud alligevel?"
+ "auth.logout_dirty": "Nogle faner har ikke-gemte ændringer. Log ud alligevel?",
+ "rp.expand": "Fold mappe ud",
+ "rp.collapse": "Fold mappe sammen"
 }

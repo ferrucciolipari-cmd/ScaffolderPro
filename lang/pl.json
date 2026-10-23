@@ -584,7 +584,6 @@
  "rp.readonly_title": "Możesz oglądać pliki, ale nie zmieniać (brak prawa zapisu)",
  "rp.search_ph": "Szukaj folderu…",
  "rp.tool": "Scaffolder Pro (nie do wyboru)",
- "rp.truncated": "Za dużo folderów: pokazano tylko pierwsze. Dla pozostałych użyj „Inny folder…”.",
  "rp.workspace": "Przestrzeń WWW",
  "rp.writable": "Z zapisem",
  "rp.writable_title": "Możesz oglądać i zmieniać pliki i foldery",
@@ -640,5 +639,7 @@
  "auth.login_note": "Pozostajesz zalogowany w tej przeglądarce, dopóki się nie wylogujesz.",
  "auth.logout": "Wyloguj",
  "auth.logout_title": "Wyloguj ({user})",
- "auth.logout_dirty": "Niektóre karty mają niezapisane zmiany. Wylogować mimo to?"
+ "auth.logout_dirty": "Niektóre karty mają niezapisane zmiany. Wylogować mimo to?",
+ "rp.expand": "Rozwiń folder",
+ "rp.collapse": "Zwiń folder"
 }

@@ -80,61 +80,86 @@ function getRecentRoots(): array {
 }
 
 /**
+ * Dati di una cartella per il selettore della root: permessi, installazione di Scaffolder Pro, numero di
+ * sottocartelle e file. Restituisce [info, nomi delle sottocartelle da esplorare (niente symlink)].
+ * $checkUp: controlla anche se sta DENTRO un'installazione (serve solo per le cartelle di partenza).
+ */
+function workspaceDirInfo(string $real, string $group, int $depth, string $base, bool $checkUp): array {
+    global $rootDir, $selfDir;
+    $tool = $real === $selfDir || isToolDir($real) || ($checkUp && insideToolDir($real));
+    $readable = @is_readable($real);
+    $info = [
+        'path' => $real, 'name' => basename($real) ?: $real, 'group' => $group, 'depth' => $depth,
+        'rel' => $base !== '' && strpos($real . '/', $base . '/') === 0 ? substr($real, strlen($base)) : $real,
+        'readable' => $readable, 'writable' => !$tool && @is_writable($real), 'tool' => $tool,
+        'current' => $real === $rootDir, 'dirs_n' => 0, 'files_n' => 0, 'scanned' => false,
+    ];
+    $subs = [];
+    if ($readable && !$tool) {
+        foreach (@scandir($real) ?: [] as $e) {
+            if ($e === '.' || $e === '..' || isExcludedName($e)) continue;
+            $full = $real . '/' . $e;
+            if (is_dir($full)) {
+                $info['dirs_n']++;
+                if (!is_link($full)) $subs[] = $e;
+            } else {
+                $info['files_n']++;
+            }
+        }
+        natcasesort($subs);
+    }
+    return [$info, array_values($subs)];
+}
+
+/**
  * Cartelle che si possono scegliere come root, per il selettore dell'intestazione: l'albero dello spazio web
  * (la cartella che contiene Scaffolder Pro, es. htdocs) e quello della root attuale se sta altrove, il livello superiore
- * e le cartelle recenti. Per ognuna: permessi (lettura/scrittura), installazione di Scaffolder Pro, numero di elementi.
+ * e le cartelle recenti. Le cartelle oltre $maxDepth (o oltre $maxDirs) hanno scanned = false: il browser
+ * ne chiede le sottocartelle quando le apre (rootChildren).
  */
 function scanWorkspaceDirs(int $maxDepth = 5, int $maxDirs = 2500): array {
-    global $defaultRoot, $rootDir, $selfDir;
+    global $defaultRoot, $rootDir;
     $items = [];
     $seen = [];
     $truncated = false;
 
-    $add = function (string $real, string $group, int $depth, string $base) use (&$items, &$seen, $rootDir, $selfDir) {
-        $seen[$real] = true;
-        // Nelle sottocartelle basta isToolDir: dentro un'installazione di Scaffolder Pro non si scende
-        $tool = $real === $selfDir || isToolDir($real) || ($depth === 0 && insideToolDir($real));
-        $readable = @is_readable($real);
-        $items[] = [
-            'path' => $real, 'name' => basename($real) ?: $real, 'group' => $group, 'depth' => $depth,
-            'rel' => $base !== '' && strpos($real . '/', $base . '/') === 0 ? substr($real, strlen($base)) : $real,
-            'readable' => $readable, 'writable' => !$tool && @is_writable($real), 'tool' => $tool,
-            'current' => $real === $rootDir, 'dirs_n' => 0, 'files_n' => 0,
-        ];
-        return count($items) - 1;
-    };
-
-    $walk = function (string $dir, int $depth, string $base) use (&$walk, &$add, &$items, &$seen, &$truncated, $maxDepth, $maxDirs) {
+    $walk = function (string $dir, int $depth, string $base) use (&$walk, &$items, &$seen, &$truncated, $maxDepth, $maxDirs) {
         if (isset($seen[$dir])) return;
         if (count($items) >= $maxDirs) { $truncated = true; return; }
-        $i = $add($dir, 'workspace', $depth, $base);
-        if (!$items[$i]['readable'] || $items[$i]['tool']) return;
-        $subs = [];
-        foreach (@scandir($dir) ?: [] as $e) {
-            if ($e === '.' || $e === '..' || isExcludedName($e)) continue;
-            $full = $dir . '/' . $e;
-            if (is_dir($full)) {
-                $items[$i]['dirs_n']++;
-                if (!is_link($full)) $subs[] = $e;
-            } else {
-                $items[$i]['files_n']++;
-            }
-        }
+        $seen[$dir] = true;
+        // Nelle sottocartelle basta isToolDir: dentro un'installazione di Scaffolder Pro non si scende
+        [$info, $subs] = workspaceDirInfo($dir, 'workspace', $depth, $base, $depth === 0);
+        $i = count($items);
+        $items[] = $info;
         if ($depth >= $maxDepth) return;
-        natcasesort($subs);
-        foreach ($subs as $e) $walk($dir . '/' . $e, $depth + 1, $base);
+        $items[$i]['scanned'] = true;
+        foreach ($subs as $e) {
+            if (count($items) >= $maxDirs) { $truncated = true; $items[$i]['scanned'] = false; return; }
+            $walk($dir . '/' . $e, $depth + 1, $base);
+        }
     };
 
     // Livello superiore dello spazio web (se è una root valida)
     $up = dirname($defaultRoot);
-    if ($up !== $defaultRoot && validateRoot($up) !== null) $add($up, 'up', 0, '');
+    if ($up !== $defaultRoot && validateRoot($up) !== null) { $items[] = workspaceDirInfo($up, 'up', 0, '', true)[0]; $seen[$up] = true; }
     $walk($defaultRoot, 0, $defaultRoot);
     // Root attuale fuori dallo spazio web (o non raggiunta per la profondità): anche il suo albero
     if (!isset($seen[$rootDir])) $walk($rootDir, 0, dirname($rootDir));
     foreach (getRecentRoots() as $rec) {
-        if (!isset($seen[$rec])) $add($rec, 'recent', 0, '');
+        if (!isset($seen[$rec])) { $items[] = workspaceDirInfo($rec, 'recent', 0, '', true)[0]; $seen[$rec] = true; }
     }
     return ['items' => $items, 'truncated' => $truncated];
+}
+
+/** Sottocartelle dirette di una cartella (apertura di un ramo non ancora letto nel selettore della root). */
+function rootChildren(string $path, int $depth, string $base): ?array {
+    $real = realpath($path);
+    if ($real === false || !is_dir($real) || $real === '/') return null;
+    [$info, $subs] = workspaceDirInfo($real, 'workspace', $depth, $base, true);
+    if ($info['tool'] || !$info['readable']) return [];
+    $out = [];
+    foreach (array_slice($subs, 0, 1000) as $e) $out[] = workspaceDirInfo($real . '/' . $e, 'workspace', $depth + 1, $base, false)[0];
+    return $out;
 }
 
 function setRootDir(string $real): void {

@@ -584,7 +584,6 @@
  "rp.readonly_title": "Puoi vedere i file ma non modificarli (permessi di scrittura mancanti)",
  "rp.search_ph": "Cerca cartella…",
  "rp.tool": "Scaffolder Pro (non selezionabile)",
- "rp.truncated": "Troppe cartelle: sono elencate solo le prime. Per le altre usa \"Altra cartella…\".",
  "rp.workspace": "Spazio web",
  "rp.writable": "Modificabile",
  "rp.writable_title": "Puoi vedere e modificare file e cartelle",
@@ -640,5 +639,7 @@
  "auth.login_note": "Resti collegato su questo browser finché non esci.",
  "auth.logout": "Esci",
  "auth.logout_title": "Esci ({user})",
- "auth.logout_dirty": "Alcune schede hanno modifiche non salvate. Uscire comunque?"
+ "auth.logout_dirty": "Alcune schede hanno modifiche non salvate. Uscire comunque?",
+ "rp.expand": "Apri cartella",
+ "rp.collapse": "Chiudi cartella"
 }

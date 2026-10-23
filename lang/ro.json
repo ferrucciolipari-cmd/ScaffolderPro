@@ -584,7 +584,6 @@
  "rp.readonly_title": "Poți vedea fișierele, dar nu le poți modifica (fără drept de scriere)",
  "rp.search_ph": "Caută folder…",
  "rp.tool": "Scaffolder Pro (nu poate fi ales)",
- "rp.truncated": "Prea multe foldere: sunt listate doar primele. Pentru celelalte folosește „Alt folder…”.",
  "rp.workspace": "Spațiu web",
  "rp.writable": "Inscriptibil",
  "rp.writable_title": "Poți vedea și modifica fișiere și foldere",
@@ -640,5 +639,7 @@
  "auth.login_note": "Rămâi conectat în acest browser până când ieși.",
  "auth.logout": "Ieși",
  "auth.logout_title": "Deconectare ({user})",
- "auth.logout_dirty": "Unele file au modificări nesalvate. Ieși oricum?"
+ "auth.logout_dirty": "Unele file au modificări nesalvate. Ieși oricum?",
+ "rp.expand": "Deschide folderul",
+ "rp.collapse": "Închide folderul"
 }

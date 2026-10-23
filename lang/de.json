@@ -584,7 +584,6 @@
  "rp.readonly_title": "Du kannst die Dateien sehen, aber nicht ändern (keine Schreibrechte)",
  "rp.search_ph": "Ordner suchen…",
  "rp.tool": "Scaffolder Pro (nicht auswählbar)",
- "rp.truncated": "Zu viele Ordner: Nur die ersten werden angezeigt. Für die anderen „Anderer Ordner…“ verwenden.",
  "rp.workspace": "Webspace",
  "rp.writable": "Beschreibbar",
  "rp.writable_title": "Du kannst Dateien und Ordner sehen und ändern",
@@ -640,5 +639,7 @@
  "auth.login_note": "Du bleibst in diesem Browser angemeldet, bis du dich abmeldest.",
  "auth.logout": "Abmelden",
  "auth.logout_title": "Abmelden ({user})",
- "auth.logout_dirty": "Einige Tabs haben ungespeicherte Änderungen. Trotzdem abmelden?"
+ "auth.logout_dirty": "Einige Tabs haben ungespeicherte Änderungen. Trotzdem abmelden?",
+ "rp.expand": "Ordner aufklappen",
+ "rp.collapse": "Ordner zuklappen"
 }

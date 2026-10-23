@@ -584,7 +584,6 @@
  "rp.readonly_title": "파일을 볼 수는 있지만 수정할 수 없습니다(쓰기 권한 없음)",
  "rp.search_ph": "폴더 검색…",
  "rp.tool": "Scaffolder Pro(선택 불가)",
- "rp.truncated": "폴더가 너무 많습니다: 처음 일부만 표시됩니다. 나머지는 \"다른 폴더…\"를 사용하세요.",
  "rp.workspace": "웹 공간",
  "rp.writable": "쓰기 가능",
  "rp.writable_title": "파일과 폴더를 보고 수정할 수 있습니다",
@@ -640,5 +639,7 @@
  "auth.login_note": "로그아웃할 때까지 이 브라우저에서 로그인 상태가 유지됩니다.",
  "auth.logout": "로그아웃",
  "auth.logout_title": "로그아웃 ({user})",
- "auth.logout_dirty": "저장되지 않은 변경 사항이 있는 탭이 있습니다. 그래도 로그아웃할까요?"
+ "auth.logout_dirty": "저장되지 않은 변경 사항이 있는 탭이 있습니다. 그래도 로그아웃할까요?",
+ "rp.expand": "폴더 펼치기",
+ "rp.collapse": "폴더 접기"
 }

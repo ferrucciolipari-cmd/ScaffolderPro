@@ -584,7 +584,6 @@
  "rp.readonly_title": "Soubory můžete vidět, ale ne měnit (chybí právo zápisu)",
  "rp.search_ph": "Hledat složku…",
  "rp.tool": "Scaffolder Pro (nelze vybrat)",
- "rp.truncated": "Příliš mnoho složek: zobrazeny jsou jen první. Pro ostatní použijte „Jiná složka…“.",
  "rp.workspace": "Webový prostor",
  "rp.writable": "Zapisovatelná",
  "rp.writable_title": "Můžete vidět a měnit soubory a složky",
@@ -640,5 +639,7 @@
  "auth.login_note": "V tomto prohlížeči zůstanete přihlášeni, dokud se neodhlásíte.",
  "auth.logout": "Odhlásit",
  "auth.logout_title": "Odhlásit ({user})",
- "auth.logout_dirty": "Některé karty mají neuložené změny. Přesto se odhlásit?"
+ "auth.logout_dirty": "Některé karty mají neuložené změny. Přesto se odhlásit?",
+ "rp.expand": "Rozbalit složku",
+ "rp.collapse": "Sbalit složku"
 }

@@ -584,7 +584,6 @@
  "rp.readonly_title": "Du kan se filerna men inte ändra dem (skrivbehörighet saknas)",
  "rp.search_ph": "Sök mapp…",
  "rp.tool": "Scaffolder Pro (kan inte väljas)",
- "rp.truncated": "För många mappar: bara de första visas. Använd \"Annan mapp…\" för resten.",
  "rp.workspace": "Webbutrymme",
  "rp.writable": "Skrivbar",
  "rp.writable_title": "Du kan se och ändra filer och mappar",
@@ -640,5 +639,7 @@
  "auth.login_note": "Du förblir inloggad i den här webbläsaren tills du loggar ut.",
  "auth.logout": "Logga ut",
  "auth.logout_title": "Logga ut ({user})",
- "auth.logout_dirty": "Vissa flikar har osparade ändringar. Logga ut ändå?"
+ "auth.logout_dirty": "Vissa flikar har osparade ändringar. Logga ut ändå?",
+ "rp.expand": "Expandera mapp",
+ "rp.collapse": "Komprimera mapp"
 }

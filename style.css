@@ -1700,3 +1700,15 @@ dialog.modal.quick-open { padding: 0; width: min(620px, 94vw); align-self: start
 
 /* Velo sotto i menu a comparsa: sotto i menu (9999), sopra tutto il resto */
 .menu-overlay { position: fixed; inset: 0; z-index: 9990; background: rgba(0, 0, 0, 0.45); animation: fadeIn 0.15s ease-out; }
+
+/* Selettore Root ad albero: freccina per aprire/chiudere i rami */
+.root-item { padding-left: calc(6px + var(--depth, 0) * 16px); }
+.root-chev { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 4px; color: #9a9a9a; margin-right: -3px; }
+.root-chev[data-toggle] { cursor: pointer; }
+.root-chev[data-toggle]:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.root-chev .chev { width: 14px; height: 14px; transition: transform .15s ease; }
+.root-chev.open .chev { transform: rotate(90deg); }
+.root-chev.static { opacity: .45; }
+.root-chev.loading .chev { animation: rootSpin .8s linear infinite; }
+@keyframes rootSpin { to { transform: rotate(360deg); } }
+@media (hover: none) { .root-chev { width: 30px; height: 30px; } }

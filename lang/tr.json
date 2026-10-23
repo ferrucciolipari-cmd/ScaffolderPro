@@ -584,7 +584,6 @@
  "rp.readonly_title": "Dosyaları görebilirsin ama değiştiremezsin (yazma izni yok)",
  "rp.search_ph": "Klasör ara…",
  "rp.tool": "Scaffolder Pro (seçilemez)",
- "rp.truncated": "Çok fazla klasör: yalnızca ilkleri listelendi. Diğerleri için \"Başka klasör…\" kullan.",
  "rp.workspace": "Web alanı",
  "rp.writable": "Yazılabilir",
  "rp.writable_title": "Dosya ve klasörleri görebilir ve değiştirebilirsin",
@@ -640,5 +639,7 @@
  "auth.login_note": "Çıkış yapana kadar bu tarayıcıda oturumun açık kalır.",
  "auth.logout": "Çıkış",
  "auth.logout_title": "Çıkış yap ({user})",
- "auth.logout_dirty": "Bazı sekmelerde kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?"
+ "auth.logout_dirty": "Bazı sekmelerde kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?",
+ "rp.expand": "Klasörü aç",
+ "rp.collapse": "Klasörü kapat"
 }

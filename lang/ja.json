@@ -584,7 +584,6 @@
  "rp.readonly_title": "ファイルは表示できますが変更できません（書き込み権限なし）",
  "rp.search_ph": "フォルダーを検索…",
  "rp.tool": "Scaffolder Pro（選択不可）",
- "rp.truncated": "フォルダーが多すぎます：最初の分だけを表示しています。他は「別のフォルダー…」を使ってください。",
  "rp.workspace": "Web スペース",
  "rp.writable": "書き込み可能",
  "rp.writable_title": "ファイルとフォルダーを表示・変更できます",
@@ -640,5 +639,7 @@
  "auth.login_note": "サインアウトするまで、このブラウザーではサインインしたままになります。",
  "auth.logout": "サインアウト",
  "auth.logout_title": "サインアウト（{user}）",
- "auth.logout_dirty": "未保存の変更があるタブがあります。サインアウトしますか？"
+ "auth.logout_dirty": "未保存の変更があるタブがあります。サインアウトしますか？",
+ "rp.expand": "フォルダーを展開",
+ "rp.collapse": "フォルダーを折りたたむ"
 }

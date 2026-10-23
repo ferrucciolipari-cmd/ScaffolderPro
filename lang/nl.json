@@ -584,7 +584,6 @@
  "rp.readonly_title": "Je kunt de bestanden zien maar niet wijzigen (geen schrijfrechten)",
  "rp.search_ph": "Map zoeken…",
  "rp.tool": "Scaffolder Pro (niet selecteerbaar)",
- "rp.truncated": "Te veel mappen: alleen de eerste worden getoond. Gebruik \"Andere map…\" voor de rest.",
  "rp.workspace": "Webruimte",
  "rp.writable": "Schrijfbaar",
  "rp.writable_title": "Je kunt bestanden en mappen zien en wijzigen",
@@ -640,5 +639,7 @@
  "auth.login_note": "Je blijft ingelogd in deze browser tot je uitlogt.",
  "auth.logout": "Uitloggen",
  "auth.logout_title": "Uitloggen ({user})",
- "auth.logout_dirty": "Sommige tabbladen hebben niet-opgeslagen wijzigingen. Toch uitloggen?"
+ "auth.logout_dirty": "Sommige tabbladen hebben niet-opgeslagen wijzigingen. Toch uitloggen?",
+ "rp.expand": "Map uitklappen",
+ "rp.collapse": "Map inklappen"
 }
