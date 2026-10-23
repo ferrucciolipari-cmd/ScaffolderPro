@@ -30,7 +30,7 @@ function postList(string $key): array {
 function treePayload(): array {
     global $rootDir;
     $tree = scanProjectTree($rootDir);
-    // Cartelle con un'installazione di TreeForge/Scaffolder: nella tendina Root non si possono scegliere
+    // Cartelle con un'installazione di Scaffolder Pro (o di una versione precedente): nella tendina Root non si possono scegliere
     $toolDirs = [];
     foreach ($tree['dirs'] as $d) {
         if ($d !== '' && isToolDir($rootDir . '/' . $d)) $toolDirs[] = $d;
@@ -963,7 +963,7 @@ switch ($action) {
     case 'reset_all': {
         $paths = array_merge([CONFIG_FILE, DB_FILE, DB_FILE . '-wal', DB_FILE . '-shm', DB_FILE . '-journal'],
             glob(DATA_DIR . '/tmp_*') ?: [], glob(DATA_DIR . '/lint_*') ?: [], glob(DATA_DIR . '/up_*') ?: [], glob(DATA_DIR . '/unz_*') ?: []);
-        // Database delle versioni precedenti (nome usato prima del cambio in TreeForge)
+        // Database delle versioni precedenti (treeforge.sqlite, scaffolder.sqlite…)
         foreach (glob(DATA_DIR . '/*.sqlite*') ?: [] as $p) $paths[] = $p;
         $errors = [];
         foreach (array_unique($paths) as $p) {
@@ -981,7 +981,7 @@ switch ($action) {
         if ($user === '' || !preg_match('/^[\p{L}\p{N}._@-]{1,64}$/u', $user)) fail(t('auth.user_invalid'));
         if (strlen($pass) < 8) fail(t('auth.pass_short', ['n' => 8]));
         $file = __DIR__ . '/.htpasswd';
-        $text = "# TreeForge — " . t('auth.htpasswd_note') . "\n" . $user . ':' . password_hash($pass, PASSWORD_BCRYPT) . "\n";
+        $text = "# Scaffolder Pro — " . t('auth.htpasswd_note') . "\n" . $user . ':' . password_hash($pass, PASSWORD_BCRYPT) . "\n";
         if (@file_put_contents($file, $text, LOCK_EX) === false) fail(t('auth.cannot_write', ['dir' => __DIR__]));
         @chmod($file, 0644);
         addLog('create', t('log.auth_enabled', ['user' => $user]));
@@ -1039,7 +1039,7 @@ switch ($action) {
         }
         $active = cleanRelPath($_POST['active'] ?? '');
         $who    = $cfg['dev_name'] !== '' ? "The developer's name is {$cfg['dev_name']}. " : '';
-        $system = "You are the programming assistant built into TreeForge, a VS Code-style web editor for PHP sites on Apache. {$who}"
+        $system = "You are the programming assistant built into Scaffolder Pro, a VS Code-style web editor for PHP sites on Apache. {$who}"
                 . ($cfg['environment'] !== '' ? "Environment: {$cfg['environment']}. " : '')
                 . 'Always reply in ' . LANGUAGES[uiLang()][1] . ' (the language of the user interface). '
                 . "You have tools to list, read and search any file of the project and to read the responses of the API requests "

@@ -44,7 +44,7 @@ importLegacyBackups($defaultRoot);
 // ROOT DI LAVORO (salvata in SQLite)
 // ===================================================================
 
-/** Cartella che contiene un'installazione di TreeForge (o del vecchio Scaffolder): non può essere una root. */
+/** Cartella che contiene un'installazione di Scaffolder Pro (o di una sua versione precedente: TreeForge, Scaffolder): non può essere una root. */
 function isToolDir(string $abs): bool {
     foreach (['api.php', 'core.php', 'index.php', 'app.js'] as $f) {
         if (!is_file($abs . '/' . $f)) return false;
@@ -52,7 +52,7 @@ function isToolDir(string $abs): bool {
     return true;
 }
 
-/** La cartella è un'installazione di TreeForge o sta dentro una di esse. */
+/** La cartella è un'installazione di Scaffolder Pro o sta dentro una di esse. */
 function insideToolDir(string $real): bool {
     for ($d = $real; $d !== '/' && $d !== '.' && $d !== ''; $d = dirname($d)) {
         if (isToolDir($d)) return true;
@@ -67,9 +67,9 @@ function validateRoot(string $path): ?string {
     if ($path === '' || $path[0] !== '/') return null;
     $real = realpath($path);
     if ($real === false || !is_dir($real) || $real === '/') return null;
-    // Non si può lavorare dentro TreeForge stesso
+    // Non si può lavorare dentro Scaffolder Pro stesso
     if ($real === $selfDir || strpos($real . '/', $selfDir . '/') === 0) return null;
-    // ...né dentro altre copie di TreeForge / Scaffolder (es. una copia di backup in un progetto)
+    // ...né dentro altre copie (anche vecchie) di Scaffolder Pro (es. una copia di backup in un progetto)
     if (insideToolDir($real)) return null;
     return $real;
 }
@@ -81,8 +81,8 @@ function getRecentRoots(): array {
 
 /**
  * Cartelle che si possono scegliere come root, per il selettore dell'intestazione: l'albero dello spazio web
- * (la cartella che contiene TreeForge, es. htdocs) e quello della root attuale se sta altrove, il livello superiore
- * e le cartelle recenti. Per ognuna: permessi (lettura/scrittura), installazione di TreeForge, numero di elementi.
+ * (la cartella che contiene Scaffolder Pro, es. htdocs) e quello della root attuale se sta altrove, il livello superiore
+ * e le cartelle recenti. Per ognuna: permessi (lettura/scrittura), installazione di Scaffolder Pro, numero di elementi.
  */
 function scanWorkspaceDirs(int $maxDepth = 5, int $maxDirs = 2500): array {
     global $defaultRoot, $rootDir, $selfDir;
@@ -92,7 +92,7 @@ function scanWorkspaceDirs(int $maxDepth = 5, int $maxDirs = 2500): array {
 
     $add = function (string $real, string $group, int $depth, string $base) use (&$items, &$seen, $rootDir, $selfDir) {
         $seen[$real] = true;
-        // Nelle sottocartelle basta isToolDir: dentro un'installazione di TreeForge non si scende
+        // Nelle sottocartelle basta isToolDir: dentro un'installazione di Scaffolder Pro non si scende
         $tool = $real === $selfDir || isToolDir($real) || ($depth === 0 && insideToolDir($real));
         $readable = @is_readable($real);
         $items[] = [
@@ -151,7 +151,7 @@ if ($rootDir === false || $rootDir === null) {
     die(htmlspecialchars(t('err.invalid_root')));
 }
 
-// Nome della cartella di TreeForge relativo alla root (se ci sta dentro), da nascondere
+// Nome della cartella di Scaffolder Pro relativo alla root (se ci sta dentro), da nascondere
 $selfRelInRoot = (strpos($selfDir . '/', $rootDir . '/') === 0) ? substr($selfDir, strlen($rootDir) + 1) : null;
 
 // ===================================================================
@@ -238,7 +238,7 @@ function cleanRelPath($path): string {
     $clean = implode('/', $parts);
     if ($clean === '') return '';
 
-    // Impedisce di toccare la cartella di TreeForge stesso
+    // Impedisce di toccare la cartella di Scaffolder Pro stesso
     if ($selfRelInRoot !== null && ($clean === $selfRelInRoot || strpos($clean . '/', $selfRelInRoot . '/') === 0)) {
         return '';
     }
@@ -365,7 +365,7 @@ function deleteDirRecursive(string $dirPath): bool {
     return @rmdir($realDir);
 }
 
-/** Copia un file o una cartella (ricorsiva). Salta symlink, .DS_Store e la cartella di TreeForge. */
+/** Copia un file o una cartella (ricorsiva). Salta symlink, .DS_Store e la cartella di Scaffolder Pro. */
 function copyRecursive(string $src, string $dst): bool {
     global $selfDir;
     if (is_link($src)) return true;
@@ -508,7 +508,7 @@ function iniBytes(string $v): int {
 // ZIP: archivio di una cartella / estrazione sicura
 // ===================================================================
 
-/** Crea uno ZIP di $absDir (saltando TreeForge stesso e le cartelle escluse). Restituisce il numero di file. */
+/** Crea uno ZIP di $absDir (saltando Scaffolder Pro stesso e le cartelle escluse). Restituisce il numero di file. */
 function zipDirectory(string $absDir, string $zipPath, array $skipNames): int {
     global $selfDir;
     $zip = new ZipArchive();
@@ -674,7 +674,7 @@ function uploadMaxBytes(): int {
 /** Proprietario di un caricamento/scompattamento: l'utente di .htpasswd (in modalità aperta tutti sono uguali). */
 function jobOwner(): string {
     global $authUser;
-    return sha1('treeforge|' . (AUTH_ENABLED ? (string)$authUser : ''));
+    return sha1('scaffolder-pro|' . (AUTH_ENABLED ? (string)$authUser : ''));
 }
 
 function jobFile(string $prefix, string $id, string $ext): string {
@@ -863,7 +863,7 @@ function httpRun(array $r): array {
         CURLOPT_FOLLOWLOCATION => false,   // i redirect si seguono a mano: ogni nuovo host va controllato
         CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_TIMEOUT        => 30,
-        CURLOPT_USERAGENT      => 'TreeForge/1.0',
+        CURLOPT_USERAGENT      => 'ScaffolderPro/1.0',
         CURLOPT_ENCODING       => '',
         CURLOPT_HEADERFUNCTION => function ($ch, $line) use (&$respHeaders) {
             $t = trim($line);
@@ -1178,7 +1178,7 @@ function claudeHistoryContent(array $content): array {
 // ===================================================================
 // CONTROLLO DELLA SINTASSI PHP
 // Prima "php -l" (vede anche gli errori di compilazione), ma solo con un PHP da riga di comando
-// della stessa versione che esegue TreeForge; altrimenti il tokenizer (solo errori di parsing).
+// della stessa versione che esegue Scaffolder Pro; altrimenti il tokenizer (solo errori di parsing).
 // ===================================================================
 
 /** PHP da riga di comando utilizzabile per "php -l": ['bin' => …, 'version' => …] oppure null. */
@@ -1518,14 +1518,16 @@ function parseErrorLog(array $lines, int $limit): array {
 
 // Attivazione facoltativa del log degli errori del sito con un blocco in <root>/.user.ini
 // (vale con PHP-FPM/CGI, es. Plesk; con mod_php, come XAMPP, .user.ini viene ignorato).
-const SITE_LOG_BEGIN = '; >>> TreeForge: PHP error log (remove it from the PHP errors panel)';
-const SITE_LOG_END   = '; <<< TreeForge';
+const SITE_LOG_BEGIN = '; >>> Scaffolder Pro: PHP error log (remove it from the PHP errors panel)';
+const SITE_LOG_END   = '; <<< Scaffolder Pro';
+// Stesso blocco scritto dalle versioni precedenti (con il nome TreeForge): riconosciuto e tolto come il nuovo
+const SITE_LOG_LEGACY = ['; >>> TreeForge: PHP error log (remove it from the PHP errors panel)', '; <<< TreeForge'];
 
 function siteLogStatus(): array {
     global $rootDir;
     $ini = $rootDir . '/.user.ini';
     $txt = is_file($ini) ? (string)@file_get_contents($ini) : '';
-    return ['on' => strpos($txt, SITE_LOG_BEGIN) !== false, 'file' => 'php_error.log',
+    return ['on' => strpos($txt, SITE_LOG_BEGIN) !== false || strpos($txt, SITE_LOG_LEGACY[0]) !== false, 'file' => 'php_error.log',
             'works' => PHP_SAPI !== 'apache2handler', 'ttl' => (int)ini_get('user_ini.cache_ttl')];
 }
 
@@ -1534,7 +1536,11 @@ function setSiteLog(bool $on) {
     global $rootDir;
     $ini = $rootDir . '/.user.ini';
     $txt = is_file($ini) ? (string)@file_get_contents($ini) : '';
-    $clean = rtrim(preg_replace('/\n?' . preg_quote(SITE_LOG_BEGIN, '/') . '.*?' . preg_quote(SITE_LOG_END, '/') . '\n?/s', "\n", $txt));
+    $clean = $txt;
+    foreach ([[SITE_LOG_BEGIN, SITE_LOG_END], SITE_LOG_LEGACY] as $m) {
+        $clean = preg_replace('/\n?' . preg_quote($m[0], '/') . '.*?' . preg_quote($m[1], '/') . '\n?/s', "\n", $clean);
+    }
+    $clean = rtrim($clean);
     if ($on) {
         $log = $rootDir . '/php_error.log';
         $block = SITE_LOG_BEGIN . "\nlog_errors = On\nerror_log = \"" . $log . "\"\n" . SITE_LOG_END . "\n";

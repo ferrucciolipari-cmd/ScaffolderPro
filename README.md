@@ -1,4 +1,4 @@
-# TreeForge
+# Scaffolder Pro
 
 VS Code-style web editor to manage PHP website files directly on the server (locally with XAMPP/MAMP or online on a web host).
 No package installations, no build: just copy the folder and open it in the browser.
@@ -9,7 +9,7 @@ No package installations, no build: just copy the folder and open it in the brow
 - **Go to file** (⌘P / Ctrl+P): fuzzy search on all the file paths of the root.
 - **Go back / Go forward** through the places you visited, like VS Code: ⌃- / ⌃⇧- on Mac, Alt+← / Alt+→ on Windows and Linux, the side buttons of the mouse or the arrows in the editor bar.
 - **Root picker** with search: the folders of your web space as a tree, with a badge for writable (R/W) and read-only (R) folders.
-- **Tabbed editor** (Ace) with syntax highlighting, ⌘S / Ctrl+S, side-by-side website preview. If a file was changed on disk after you opened it (FTP, another user), TreeForge asks before overwriting it.
+- **Tabbed editor** (Ace) with syntax highlighting, ⌘S / Ctrl+S, side-by-side website preview. If a file was changed on disk after you opened it (FTP, another user), Scaffolder Pro asks before overwriting it.
 - **Find and replace** in the content of all files (⌘⇧F / Ctrl+Shift+F), with regular expressions.
 - **PHP syntax check** before saving: no more blank pages or 500 Error for a forgotten bracket.
 - **Site PHP errors** in a panel, with a click to open the file at the correct line.
@@ -29,25 +29,25 @@ No package installations, no build: just copy the folder and open it in the brow
 
 1. **Copy the folder** into your web space, next to the projects you want to manage:
    ```bash
-   git clone https://github.com/ferrucciolipari-cmd/TreeForge.git treeforge
+   git clone https://github.com/ferrucciolipari-cmd/TreeForge.git scaffolder-pro
    ```
-   or download the ZIP, extract it and upload it via FTP (e.g. in `htdocs/treeforge/` or `httpdocs/treeforge/`).
-2. **Open in the browser** `http://localhost/treeforge/` (or `https://yourdomain.com/treeforge/`).
+   or download the ZIP, extract it and upload it via FTP (e.g. in `htdocs/scaffolder-pro/` or `httpdocs/scaffolder-pro/`).
+2. **Open in the browser** `http://localhost/scaffolder-pro/` (or `https://yourdomain.com/scaffolder-pro/`).
    At the first launch, the database and settings are created by themselves in the `data/` folder.
 3. If the "missing an installation step" page appears, PHP cannot write in `data/`: make it writable
    (`chmod -R 777 data` from terminal, or 777 permissions on the `data` folder from FTP client / file manager) and reload.
 4. Choose the folder to work on from the **Root** dropdown at the top. The settings (language, name, Anthropic API key, editor) are in the user button with the flag, on the top right.
 
-> ⚠️ **Just installed, TreeForge has no password** and shows a red warning at the top.
+> ⚠️ **Just installed, Scaffolder Pro has no password** and shows a red warning at the top.
 > Anyone who knows the address can read and modify the site's files: **enable protection immediately**, especially online.
 
 ## 🔒 Enable protection
 
-The password is checked by TreeForge itself (`auth.php`) reading the **`.htpasswd`** file in its folder.
+The password is checked by Scaffolder Pro itself (`auth.php`) reading the **`.htpasswd`** file in its folder.
 Just add a user in that file: there's no need to modify `.htaccess` or know server paths.
 
 **Quickest way:** click **Set password now** in the red warning at the top, choose user name and password (at least 8 characters)
-and confirm: TreeForge writes `.htpasswd` by itself (the TreeForge folder must be writable by the web server) and reloads.
+and confirm: Scaffolder Pro writes `.htpasswd` by itself (the Scaffolder Pro folder must be writable by the web server) and reloads.
 The button is available only while no user exists. Otherwise, generate the credentials by hand:
 
 ### 1. Generate credentials
@@ -58,17 +58,17 @@ Every line of `.htpasswd` has the form `user:hash`, where the hash is the passwo
   ```bash
   htpasswd -B -c .htpasswd admin
   ```
-  Run it inside the `treeforge/` folder: it asks for the password and creates the file. (`-c` overwrites the file: to add other users omit it.)
+  Run it inside the `scaffolder-pro/` folder: it asks for the password and creates the file. (`-c` overwrites the file: to add other users omit it.)
 - **With PHP from terminal**:
   ```bash
   php -r 'echo "admin:" . password_hash("YOUR_PASSWORD", PASSWORD_BCRYPT) . PHP_EOL;'
   ```
   Copy the printed line inside `.htpasswd`.
-- **On an hosting without terminal**: create a temporary `hash.php` file in the TreeForge folder with
+- **On an hosting without terminal**: create a temporary `hash.php` file in the Scaffolder Pro folder with
   ```php
   <?php echo 'admin:' . password_hash('YOUR_PASSWORD', PASSWORD_BCRYPT);
   ```
-  open it once in the browser (`https://yourdomain.com/treeforge/hash.php`), copy the shown line into `.htpasswd`
+  open it once in the browser (`https://yourdomain.com/scaffolder-pro/hash.php`), copy the shown line into `.htpasswd`
   and **delete `hash.php` immediately**.
 
 Example of how `.htpasswd` looks (one line per user; lines starting with `#` are comments; the hash below is fake, generate your own):
@@ -78,7 +78,7 @@ admin:$2y$12$ZczvSVijnz98R5Fc1xW.Guh4D5jhojzV2St7pT97jYFDG5w9.0Oty
 
 ### 2. Reload the page
 
-The browser asks for user and password and the red warning disappears. Done: all pages and actions of TreeForge are protected.
+The browser asks for user and password and the red warning disappears. Done: all pages and actions of Scaffolder Pro are protected.
 The `.htpasswd`, `.htaccess` files, the database and other sensitive files are however always blocked via web.
 
 ### 3. (Optional) Double protection at Apache level
@@ -87,20 +87,26 @@ If you want Apache to ask for the password too, even before PHP starts, in `.hta
 
 ```apache
 # AuthType Basic
-# AuthName "TreeForge"
-# AuthUserFile /absolute/path/treeforge/.htpasswd
+# AuthName "Scaffolder Pro"
+# AuthUserFile /absolute/path/scaffolder-pro/.htpasswd
 # Require valid-user
 ```
 
 1. **Find the absolute path** of the folder on the server. `AuthUserFile` wants a disk path, **not a URL**:
-   - XAMPP macOS: `/Applications/XAMPP/xamppfiles/htdocs/treeforge/.htpasswd`
-   - XAMPP Windows: `C:/xampp/htdocs/treeforge/.htpasswd`
-   - Linux / Plesk: usually `/var/www/vhosts/yourdomain.com/httpdocs/treeforge/.htpasswd`
+   - XAMPP macOS: `/Applications/XAMPP/xamppfiles/htdocs/scaffolder-pro/.htpasswd`
+   - XAMPP Windows: `C:/xampp/htdocs/scaffolder-pro/.htpasswd`
+   - Linux / Plesk: usually `/var/www/vhosts/yourdomain.com/httpdocs/scaffolder-pro/.htpasswd`
    - To know for sure create a temporary `path.php` file with `<?php echo __DIR__;`, open it in the browser,
      note down the result and **delete the file**. The path to use is the one shown + `/.htpasswd`.
 2. **Uncomment the four lines** removing the initial `#` and write the found path after `AuthUserFile`.
 3. Reload the page. If **Error 500** appears, the path is wrong or the `mod_auth_basic` module is not active:
    put the `#` back in front of the lines and double check the path.
+
+## ⬆️ Upgrading from TreeForge
+
+Scaffolder Pro is the new name of TreeForge. To upgrade, replace the program files and keep your `data/` folder and `.htpasswd`:
+the old database (`data/treeforge.sqlite`) is renamed automatically at the first start, so versions, trash, log and API requests are kept.
+The browser asks you to sign in again once, and the layout saved in the browser (columns, open tabs) starts from the defaults.
 
 ## 🧰 Common problems
 

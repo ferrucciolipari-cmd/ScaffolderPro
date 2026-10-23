@@ -1,4 +1,4 @@
-# TreeForge — protezione cartella
+# Scaffolder Pro — protezione cartella
 # Funziona uguale in locale e online: nessun percorso assoluto attivo.
 Options -Indexes
 DirectoryIndex index.php
@@ -19,13 +19,13 @@ DirectoryIndex index.php
 
 # ---------------------------------------------------------------------------
 # FACOLTATIVO — doppia protezione a livello Apache (HTTP Basic).
-# Non serve per proteggere TreeForge: basta un utente in .htpasswd (auth.php).
+# Non serve per proteggere Scaffolder Pro: basta un utente in .htpasswd (auth.php).
 # Per attivarla togli il "#" dalle 4 righe qui sotto e scrivi in AuthUserFile il
 # percorso ASSOLUTO di .htpasswd sul tuo server (non un URL). Un percorso sbagliato
 # dà Errore 500: come trovarlo è spiegato nel README.md.
-# Esempio XAMPP macOS: /Applications/XAMPP/xamppfiles/htdocs/treeforge/.htpasswd
+# Esempio XAMPP macOS: /Applications/XAMPP/xamppfiles/htdocs/scaffolder-pro/.htpasswd
 # ---------------------------------------------------------------------------
 # AuthType Basic
-# AuthName "TreeForge"
-# AuthUserFile /percorso/assoluto/treeforge/.htpasswd
+# AuthName "Scaffolder Pro"
+# AuthUserFile /percorso/assoluto/scaffolder-pro/.htpasswd
 # Require valid-user

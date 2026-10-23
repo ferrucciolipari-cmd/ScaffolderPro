@@ -46,8 +46,8 @@ header {
 }
 
 .brand { font-size: 15px; font-weight: 700; color: var(--accent); }
-.brand .b-tree { color: rgb(0, 122, 204); }
-.brand .b-forge { color: #fff; }
+.brand .b-main { color: rgb(0, 122, 204); }
+.brand .b-pro { color: #fff; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .tool-form { margin: 0; }

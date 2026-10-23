@@ -1,5 +1,5 @@
 // ============================================================================
-// TREEFORGE — frontend (Explorer, editor a schede, Claude, modali)
+// SCAFFOLDER PRO — frontend (Explorer, editor a schede, Claude, modali)
 // ============================================================================
 const APP = window.APP_DATA;
 const ROOT_KEY = APP.rootDir;
@@ -24,7 +24,7 @@ const state = {
 
 let editor = null;
 let ctxTarget = null;
-let currentZoom = parseInt(localStorage.getItem('treeforge_editor_zoom') || APP.config.editor_font || 14, 10);
+let currentZoom = parseInt(localStorage.getItem('scaffolder_editor_zoom') || APP.config.editor_font || 14, 10);
 if (isNaN(currentZoom) || currentZoom < 10 || currentZoom > 32) currentZoom = 14;
 
 // ----------------------------------------------------------------------------
@@ -353,7 +353,7 @@ function renderRootPicker(scrollToCurrent = false) {
         let head = '';
         if (it.group !== lastGroup) { head = `<div class="root-group">${esc(groupTitle[it.group] || '')}</div>`; lastGroup = it.group; }
         const disabled = it.tool || !it.readable;
-        const badge = it.tool ? `<span class="perm-badge tool">TreeForge</span>`
+        const badge = it.tool ? `<span class="perm-badge tool">Scaffolder Pro</span>`
             : !it.readable ? `<span class="perm-badge ro">${esc(L('rp.no_access'))}</span>`
             : it.writable ? `<span class="perm-badge rw" title="${esc(L('rp.writable_title'))}">R/W</span>`
             : `<span class="perm-badge ro" title="${esc(L('rp.readonly_title'))}">R</span>`;
@@ -928,7 +928,7 @@ function openPreviewWindow(path) {
     const url = previewUrl(path);
     if (!url) { toast(L('js.no_preview'), 'error'); return; }
     // Stesso nome finestra: l'anteprima riusa sempre la stessa scheda del browser
-    const w = window.open(url, 'treeforge_preview');
+    const w = window.open(url, 'scaffolder_preview');
     if (w) w.focus();
 }
 
@@ -1323,7 +1323,7 @@ function activateTab(path) {
         renderCtxChips();
         saveTabsState();
         navRecord(path, 0, 0);
-        document.title = L('js.claude_proposal') + ': ' + baseName(tab.prop.path) + ' — TreeForge';
+        document.title = L('js.claude_proposal') + ': ' + baseName(tab.prop.path) + ' — Scaffolder Pro';
         return;
     }
     if (isHttp) {
@@ -1336,7 +1336,7 @@ function activateTab(path) {
         renderHttpList();
         saveTabsState();
         navRecord(path, 0, 0);
-        document.title = tab.req.name + ' — TreeForge';
+        document.title = tab.req.name + ' — Scaffolder Pro';
         return;
     }
     const isCode = tab.kind === 'code' && editor;
@@ -1361,7 +1361,7 @@ function activateTab(path) {
     renderCtxChips();
     if (state.split) refreshSplit();
     saveTabsState();
-    document.title = baseName(path) + ' — TreeForge';
+    document.title = baseName(path) + ' — Scaffolder Pro';
     const pos = isCode ? editor.getCursorPosition() : { row: 0, column: 0 };
     navRecord(path, pos.row, pos.column);
 }
@@ -1423,7 +1423,7 @@ function showWelcome() {
     $('#diffView').hidden = true;
     renderHttpList();
     $('#previewFrame').hidden = true;
-    document.title = 'TreeForge';
+    document.title = 'Scaffolder Pro';
     updateRowClasses();
     renderCtxChips();
     saveTabsState();
@@ -1536,7 +1536,7 @@ function applyEditorZoom(size) {
         editor.renderer.updateFontSize();
     }
     $('#zoomLabel').textContent = currentZoom + 'px';
-    localStorage.setItem('treeforge_editor_zoom', String(currentZoom));
+    localStorage.setItem('scaffolder_editor_zoom', String(currentZoom));
 }
 
 function initTopbar() {
@@ -2834,7 +2834,7 @@ function initHttp() {
         if (e.target.id === 'hCtx') return;
         const tab = tabFor(state.active);
         if (!tab || tab.kind !== 'http') return;
-        if (e.target.id === 'hName') { tab.req.name = e.target.value || L('http.new'); renderTabs(); document.title = tab.req.name + ' — TreeForge'; }
+        if (e.target.id === 'hName') { tab.req.name = e.target.value || L('http.new'); renderTabs(); document.title = tab.req.name + ' — Scaffolder Pro'; }
         if (e.target.id === 'hMethod') $('#hBodySec').hidden = e.target.value === 'GET';
         if (e.target.id === 'hAuthType') updateAuthFields();
         clearTimeout(tab.saveTimer);

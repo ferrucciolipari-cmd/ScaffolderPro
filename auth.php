@@ -55,12 +55,12 @@ define('AUTH_ENABLED', htpasswdUsers() !== []);
 if (AUTH_ENABLED && !checkHtpasswd($authUser, $authPass)) {
     if ($authUser !== '') usleep(400000); // rallenta i tentativi di indovinare la password
     http_response_code(401);
-    header('WWW-Authenticate: Basic realm="TreeForge", charset="UTF-8"');
+    header('WWW-Authenticate: Basic realm="Scaffolder Pro", charset="UTF-8"');
     exit(t('auth.required'));
 }
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_name('TREEFORGESESSID');
+    session_name('SCAFFOLDERPROSESSID');
     session_start();
 }
 

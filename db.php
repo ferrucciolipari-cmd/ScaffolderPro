@@ -1,10 +1,10 @@
 <?php
 // ===================================================================
-// DATABASE SQLITE (data/treeforge.sqlite)
+// DATABASE SQLITE (data/scaffolder-pro.sqlite)
 // ===================================================================
 
 const DATA_DIR = __DIR__ . '/data';
-const DB_FILE  = DATA_DIR . '/treeforge.sqlite';
+const DB_FILE  = DATA_DIR . '/scaffolder-pro.sqlite';
 const CONFIG_FILE = DATA_DIR . '/config.json';
 
 function db(): PDO {
@@ -13,6 +13,12 @@ function db(): PDO {
 
     if (!is_dir(DATA_DIR)) {
         @mkdir(DATA_DIR, 0777, true);
+    }
+    // Aggiornamento da una versione con il nome precedente: il database (versioni, registro, richieste API) si tiene
+    if (!is_file(DB_FILE) && is_file(DATA_DIR . '/treeforge.sqlite') && is_writable(DATA_DIR)) {
+        foreach (['', '-wal', '-shm'] as $sfx) {
+            if (is_file(DATA_DIR . '/treeforge.sqlite' . $sfx)) @rename(DATA_DIR . '/treeforge.sqlite' . $sfx, DB_FILE . $sfx);
+        }
     }
     $isNew = !is_file(DB_FILE);
     // Primo avvio dopo un clone/upload: senza permessi di scrittura su data/ si spiega cosa fare invece di dare Errore 500
@@ -101,7 +107,7 @@ function setupError(string $html): void {
     }
     header('Content-Type: text/html; charset=utf-8');
     exit('<!DOCTYPE html><html lang="' . uiLang() . '"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<title>TreeForge — ' . htmlspecialchars(t('setup.title')) . '</title><style>body{font:15px/1.6 -apple-system,Segoe UI,sans-serif;background:#1e1e1e;color:#ccc;margin:0;padding:40px 16px}'
+        . '<title>Scaffolder Pro — ' . htmlspecialchars(t('setup.title')) . '</title><style>body{font:15px/1.6 -apple-system,Segoe UI,sans-serif;background:#1e1e1e;color:#ccc;margin:0;padding:40px 16px}'
         . 'main{max-width:680px;margin:auto;background:#252526;border:1px solid #c93c37;border-radius:8px;padding:20px 24px}h1{font-size:18px;color:#f48771;margin-top:0}'
         . 'code{background:#1e1e1e;border:1px solid #333;border-radius:3px;padding:1px 5px;color:#ce9178;word-break:break-all}</style></head>'
         . '<body><main><h1>' . htmlspecialchars(t('setup.heading')) . '</h1><p>' . $html . '</p></main></body></html>');

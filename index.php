@@ -19,7 +19,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TreeForge</title>
+    <title>Scaffolder Pro</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=<?= filemtime(__DIR__ . '/favicon.svg') ?>">
     <link rel="stylesheet" href="style.css?v=<?= filemtime(__DIR__ . '/style.css') ?>">
 </head>
@@ -74,7 +74,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 </svg>
 
 <header>
-    <div class="brand"><?= ic('bolt') ?> <span class="brand-name"><span class="b-tree">Tree</span><span class="b-forge">Forge</span></span></div>
+    <div class="brand"><?= ic('bolt') ?> <span class="brand-name"><span class="b-main">Scaffolder</span> <span class="b-pro">Pro</span></span></div>
 
     <div class="toolbar">
         <!-- Selettore della root: cartelle dello spazio web con ricerca e permessi -->
@@ -235,7 +235,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                 </div>
                 <div id="welcome" class="welcome">
                     <div class="welcome-logo"><?= ic('bolt') ?></div>
-                    <h2>TreeForge</h2>
+                    <h2>Scaffolder Pro</h2>
                     <p class="muted" id="welcomeRoot"></p>
                     <ul class="muted">
                         <li><?= tx('welcome.open') ?></li>
