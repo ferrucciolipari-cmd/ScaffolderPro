@@ -1,0 +1,2 @@
+# I test non devono mai essere raggiungibili dal web (anche se la cartella viene caricata online)
+Require all denied

@@ -68,6 +68,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="13" rx="5"/><path d="M12 11v9M9 4.5l1.5 2.5M15 4.5 13.5 7M3.5 13H7M17 13h3.5M4.5 8.5 7.5 10M19.5 8.5 16.5 10M4.5 18.5l3-1.5M19.5 18.5l-3-1.5"/></symbol>
         <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
         <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
+        <symbol id="i-device" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16.5V20"/></symbol>
         <symbol id="i-format" viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></symbol>
         <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
         <symbol id="i-minimap" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M14.5 3.5v17"/><path d="M6.5 8h5M6.5 11h4M6.5 14h5"/></symbol>
@@ -519,6 +521,10 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                     <div class="muted" id="lintInfo"></div>
                     <label class="check"><input type="checkbox" name="claude_apply_save"> <?= tx('set.claude_apply_save') ?></label>
                     <label><?= tx('set.error_log_path') ?> <input type="text" name="error_log_path" placeholder="/var/www/vhosts/example.com/logs/error_log" autocomplete="off" spellcheck="false"></label>
+                </fieldset>
+                <fieldset class="wide" id="securityBox">
+                    <legend><?= ic('lock') ?> <?= tx('sec.title') ?></legend>
+                    <div id="secContent" class="sec-content"><div class="muted"><?= tx('rp.loading') ?></div></div>
                 </fieldset>
                 <fieldset>
                     <legend><?= tx('set.download_server') ?></legend>

@@ -121,6 +121,15 @@ switch ($action) {
         jsonOut(['ok' => true, 'items' => $kids]);
     }
 
+    // Sicurezza (Impostazioni): verifica in due passaggi dell'utente collegato e dispositivi collegati
+    case 'security': {
+        if (!AUTH_ENABLED) jsonOut(['ok' => true, 'auth' => false]);
+        $row = $authUser !== '' ? totpRow($authUser) : null;
+        jsonOut(['ok' => true, 'auth' => true, 'user' => $authUser, 'via_cookie' => currentSelector() !== '',
+                 'totp' => ['enabled' => (bool)$row, 'recovery_left' => $row ? count(json_decode((string)$row['recovery'], true) ?: []) : 0],
+                 'devices' => authDevices(), 'lock' => ['fails' => LOGIN_MAX_FAILS, 'minutes' => (int)(LOGIN_LOCK / 60)]]);
+    }
+
     case 'get_side':
         jsonOut(['ok' => true, 'logs' => getLogs(max(1, min(MAX_LOGS, (int)($_GET['limit'] ?? 80)))), 'trash' => getTrash()]);
 
@@ -996,6 +1005,64 @@ switch ($action) {
         addLog('create', t('log.auth_enabled', ['user' => $user]));
         authLogin($user);   // chi ha scelto la password resta dentro, senza doverla scrivere subito
         jsonOut(['ok' => true]);
+    }
+
+    // M2b. VERIFICA IN DUE PASSAGGI: 1) nuovo segreto (non ancora attivo) 2) conferma con il primo codice → codici di emergenza
+    case 'totp_begin': {
+        if (!AUTH_ENABLED || $authUser === '') fail(t('sec.need_login'));
+        if (totpRow($authUser)) fail(t('sec.totp_already'));
+        $secret = base32Encode(random_bytes(20));
+        db()->prepare('INSERT OR REPLACE INTO auth_totp (user, secret, enabled, pass_sig, last_step, recovery) VALUES (?, ?, 0, \'\', 0, \'[]\')')->execute([$authUser, $secret]);
+        $label = rawurlencode('Scaffolder Pro:' . $authUser . '@' . preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost')));
+        jsonOut(['ok' => true, 'secret' => $secret, 'uri' => "otpauth://totp/$label?secret=$secret&issuer=" . rawurlencode('Scaffolder Pro') . '&digits=6&period=30']);
+    }
+
+    case 'totp_confirm': {
+        if (!AUTH_ENABLED || $authUser === '') fail(t('sec.need_login'));
+        $st = db()->prepare('SELECT * FROM auth_totp WHERE user = ? AND enabled = 0');
+        $st->execute([$authUser]);
+        $row = $st->fetch();
+        if (!$row) fail(t('sec.totp_restart'));
+        if (!totpCheck($row, (string)($_POST['code'] ?? ''))) fail(t('auth.code_wrong'));
+        $codes = []; $hashes = [];
+        for ($i = 0; $i < 8; $i++) {
+            $c = bin2hex(random_bytes(4));
+            $codes[] = substr($c, 0, 4) . '-' . substr($c, 4);
+            $hashes[] = hash('sha256', $c);
+        }
+        $users = htpasswdUsers();
+        db()->prepare('UPDATE auth_totp SET enabled = 1, pass_sig = ?, recovery = ? WHERE user = ?')
+            ->execute([passSig($users[$authUser] ?? ''), json_encode($hashes), $authUser]);
+        addLog('create', t('log.totp_on', ['user' => $authUser]));
+        jsonOut(['ok' => true, 'recovery' => $codes]);
+    }
+
+    case 'totp_disable': {
+        if (!AUTH_ENABLED || $authUser === '') fail(t('sec.need_login'));
+        $row = totpRow($authUser);
+        if (!$row) jsonOut(['ok' => true]);
+        if (!totpCheck($row, (string)($_POST['code'] ?? ''))) fail(t('auth.code_wrong'));
+        db()->prepare('DELETE FROM auth_totp WHERE user = ?')->execute([$authUser]);
+        addLog('delete', t('log.totp_off', ['user' => $authUser]));
+        jsonOut(['ok' => true]);
+    }
+
+    // M2c. DISPOSITIVI COLLEGATI: esci da uno, o da tutti tranne questo
+    case 'device_revoke': {
+        if (!AUTH_ENABLED) fail(t('sec.need_login'));
+        $id = (int)($_POST['id'] ?? 0);
+        $all = ($_POST['all_others'] ?? '0') === '1';
+        $cur = currentSelector();
+        if ($all) {
+            $st = db()->prepare('DELETE FROM auth_tokens WHERE selector <> ?');
+            $st->execute([$cur]);
+            addLog('delete', t('log.devices_out', ['n' => $st->rowCount()]));
+        } else {
+            $st = db()->prepare('DELETE FROM auth_tokens WHERE rowid = ? AND selector <> ?');
+            $st->execute([$id, $cur]);
+            if ($st->rowCount()) addLog('delete', t('log.device_out', ['n' => 1]));
+        }
+        jsonOut(['ok' => true, 'devices' => authDevices()]);
     }
 
     // M3. ESCI: il login di questo browser viene cancellato (anche sul server)

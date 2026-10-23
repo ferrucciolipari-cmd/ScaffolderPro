@@ -89,6 +89,16 @@ no popup, no session that expires after a few minutes. Signing out deletes the l
 every browser signed in with the old one has to sign in again.
 The `.htpasswd`, `.htaccess` files, the database and other sensitive files are however always blocked via web.
 
+### More security (Settings → Security)
+
+- **Blocked attempts**: after 10 wrong passwords (or codes) from the same IP address in 15 minutes, signing in from that address is blocked
+  for 15 minutes. The block is written in the activity log. Anyone already signed in keeps working.
+- **Two-step verification** (optional, per user): scan the QR code with an authenticator app (Google Authenticator, Microsoft Authenticator,
+  1Password, Authy…) and confirm with the 6-digit code. You get **8 emergency codes**, each valid once: keep them safe.
+  Lost the phone and the codes? Change the password of that user in `.htpasswd` (see step 1): this turns two-step verification off.
+  With two-step verification on, HTTP Basic (step 3, scripts) is no longer accepted for that user.
+- **Signed-in devices**: browser, address, last use; sign out a single device or all the others.
+
 ### 3. (Optional) Double protection at Apache level
 
 If you want Apache to ask for the password too, even before PHP starts, in `.htaccess` there's a block already ready but commented:
@@ -127,6 +137,19 @@ You sign in once with the new sign-in page, and the layout saved in the browser 
   Uploads interrupted for more than 24 hours are deleted automatically; the maximum size per file is in Settings → Download and server.
 - **The API requests card refuses an address**: cloud metadata addresses (`169.254.x.x`, `fe80::`) are always blocked for safety; `localhost` and private networks are allowed.
 - **Claude does not respond**: insert the Anthropic API key in the settings (user button on top right). The key stays on the server in `data/config.json`.
+
+## 🧪 Automated tests (for developers)
+
+```bash
+tests/run.sh
+```
+
+One command checks the PHP syntax on every PHP version found (Homebrew `php@7.4`, `php@8.4`, `php@8.5`…), `app.js`, the 21 language files,
+then runs about 80 checks on `api.php` for each version: root picker, save conflicts, duplicate, API requests, Claude (with a fake server),
+chunked uploads, ZIP extraction in steps, settings, sign-in, two-step verification, devices, blocked attempts.
+It works on a temporary copy with low PHP limits and never touches your installation or your sites.
+`tests/run.sh --big` also uploads a 1 GB file in chunks; `tests/run.sh --php "8.4"` tests one version; `PHP_BINS="/path/php"` picks the binaries.
+Needs `python3` and the PHP command line. The `tests/` folder is blocked from the web by its own `.htaccess`.
 
 ## 📁 What not to publish
 

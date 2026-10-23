@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSetupAuth();
     initLogout();
     initMenuOverlay();
+    initSecurity();
 
     $('#rootName').textContent = baseName(APP.rootDir) || APP.rootDir;
     $('#welcomeRoot').textContent = L('js.working_root', { path: APP.rootDir });
@@ -2185,6 +2186,8 @@ function initSettings() {
         form.remove_api_key.checked = false;
         $('#apiKeyState').textContent = c.has_api_key ? L('js.key_saved', { hint: c.api_key_hint }) : L('js.no_key');
         $('#settingsMsg').textContent = '';
+        security.setup = null; security.recovery = null; security.disabling = false;
+        loadSecurity();
         $('#limitsBox').innerHTML = `<div class="limits-title">${esc(L('js.php_limits'))}</div>` + limitsHtml()
             + `<div><span>${esc(L('js.apache_user'))}</span><b>${esc(APP.daemonUser)}</b></div>`
             + `<div><span>${esc(L('js.root_writable'))}</span><b>${esc(L($('#permBanner').hidden ? 'js.yes' : 'js.no'))}</b></div>`
@@ -2258,6 +2261,118 @@ function initMenuOverlay() {
     menus.forEach(m => mo.observe(m, { attributes: true, attributeFilter: ['hidden'] }));
     overlay.addEventListener('contextmenu', (e) => { e.preventDefault(); overlay.click(); });
     overlay.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
+}
+
+// ----------------------------------------------------------------------------
+// SICUREZZA (Impostazioni): verifica in due passaggi e dispositivi collegati
+// ----------------------------------------------------------------------------
+const security = { data: null, setup: null, recovery: null, disabling: false };
+
+/** "Chrome · macOS" dallo user agent (solo per riconoscere i dispositivi). */
+function deviceName(ua) {
+    ua = ua || '';
+    const b = /Edg\//.test(ua) ? 'Edge' : /OPR\/|Opera/.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox'
+        : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : /curl|python|wget/i.test(ua) ? ua.split('/')[0] : 'Browser';
+    const o = /iPhone|iPad/.test(ua) ? 'iOS' : /Android/.test(ua) ? 'Android' : /Mac OS X|Macintosh/.test(ua) ? 'macOS'
+        : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : '';
+    return b + (o ? ' · ' + o : '');
+}
+
+function loadSecurity() {
+    return apiGet('security').then(res => { if (res.ok) { security.data = res; renderSecurity(); } });
+}
+
+function renderSecurity() {
+    const box = $('#secContent');
+    const d = security.data;
+    if (!d) return;
+    if (!d.auth) { box.innerHTML = `<div class="muted">${esc(L('sec.off'))}</div>`; return; }
+    let totp;
+    if (security.recovery) {
+        totp = `<div class="sec-panel"><b>${esc(L('sec.recovery_title'))}</b><p class="muted">${esc(L('sec.recovery_note'))}</p>`
+            + `<div class="sec-codes">${security.recovery.map(c => `<code>${esc(c)}</code>`).join('')}</div>`
+            + `<div class="hrow"><button type="button" class="sbtn" data-sec="copy-codes">${ic('copy')} ${esc(L('sec.copy_codes'))}</button>`
+            + `<button type="button" class="pbtn" data-sec="codes-done">${esc(L('sec.done'))}</button></div></div>`;
+    } else if (security.setup) {
+        totp = `<div class="sec-panel sec-setup"><div class="sec-qr">${security.setup.svg}</div><div class="sec-setup-text">`
+            + `<p>${esc(L('sec.setup_steps'))}</p><p class="muted">${esc(L('sec.manual'))}</p>`
+            + `<code class="sec-secret copyable" data-sec="copy-secret" title="${esc(L('js.click_copy'))}">${esc(security.setup.secret.replace(/(.{4})/g, '$1 ').trim())}</code>`
+            + `<div class="hrow"><input type="text" id="secCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="${esc(L('sec.code_ph'))}">`
+            + `<button type="button" class="pbtn" data-sec="confirm">${esc(L('sec.confirm'))}</button>`
+            + `<button type="button" class="sbtn" data-sec="cancel-setup">${esc(L('common.cancel'))}</button></div></div></div>`;
+    } else if (security.disabling) {
+        totp = `<div class="sec-panel"><p class="muted">${esc(L('sec.disable_note'))}</p><div class="hrow">`
+            + `<input type="text" id="secCode" autocomplete="one-time-code" maxlength="9" placeholder="${esc(L('sec.code_ph'))}">`
+            + `<button type="button" class="sbtn danger-btn" data-sec="disable-confirm">${esc(L('sec.disable'))}</button>`
+            + `<button type="button" class="sbtn" data-sec="cancel-disable">${esc(L('common.cancel'))}</button></div></div>`;
+    } else {
+        totp = `<div class="sec-row"><span class="sec-state ${d.totp.enabled ? 'on' : 'off'}">${esc(d.totp.enabled ? L('sec.totp_on_state', { n: d.totp.recovery_left }) : L('sec.totp_off_state'))}</span>`
+            + `<button type="button" class="sbtn${d.totp.enabled ? ' danger-btn' : ''}" data-sec="${d.totp.enabled ? 'disable' : 'enable'}">${esc(L(d.totp.enabled ? 'sec.disable' : 'sec.enable'))}</button></div>`;
+    }
+    const others = d.devices.filter(x => !x.current).length;
+    const devices = d.devices.map(x => `<div class="sec-device${x.current ? ' current' : ''}">${ic('device')}`
+        + `<div class="sec-device-text"><span class="sec-device-name"><b>${esc(deviceName(x.agent))}</b>${x.current ? ` <span class="perm-badge rw">${esc(L('sec.this_device'))}</span>` : ''}</span>`
+        + `<small class="muted">${esc(x.user)} · ${esc(x.last_ip || x.ip || '—')} · ${esc(L('sec.last_used', { date: x.last_used }))} · ${esc(L('sec.signed_in_at', { date: x.created_at }))}</small></div>`
+        + (x.current ? '' : `<button type="button" class="sbtn" data-sec="revoke" data-id="${x.id}">${esc(L('sec.sign_out_device'))}</button>`) + `</div>`).join('');
+    box.innerHTML = `<p class="muted">${esc(L('sec.lock_info', { fails: d.lock.fails, min: d.lock.minutes }))}</p>`
+        + `<h4>${esc(L('sec.totp_title'))}${d.user ? ` <small class="muted">(${esc(d.user)})</small>` : ''}</h4>${totp}`
+        + `<h4>${esc(L('sec.devices_title'))}</h4><div class="sec-devices">${devices || `<div class="muted">${esc(L('sec.no_devices'))}</div>`}</div>`
+        + (others ? `<button type="button" class="sbtn danger-btn" data-sec="revoke-others">${ic('logout')} ${esc(L('sec.sign_out_others'))}</button>` : '');
+    const code = $('#secCode');
+    if (code) {
+        focusSoft(code);
+        code.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $(security.setup ? '[data-sec="confirm"]' : '[data-sec="disable-confirm"]', box).click(); } });
+    }
+}
+
+function initSecurity() {
+    $('#secContent').addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-sec]');
+        if (!b) return;
+        const act = b.dataset.sec;
+        const fail = (res) => toast(res.error || L('js.network_error'), 'error');
+        if (act === 'enable') {
+            const res = await apiPost({ action: 'totp_begin' });
+            if (!res.ok) { fail(res); return; }
+            await loadScript('lib/qrcode/qrcode.js');
+            const qr = window.qrcode(0, 'M');
+            qr.addData(res.uri);
+            qr.make();
+            security.setup = { secret: res.secret, svg: qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true }) };
+            renderSecurity();
+        } else if (act === 'confirm') {
+            const res = await apiPost({ action: 'totp_confirm', code: ($('#secCode').value || '').trim() });
+            if (!res.ok) { fail(res); $('#secCode').select(); return; }
+            security.setup = null;
+            security.recovery = res.recovery;
+            toast(L('sec.totp_enabled_toast'));
+            await loadSecurity();
+        } else if (act === 'cancel-setup') {
+            security.setup = null; renderSecurity();
+        } else if (act === 'copy-secret') {
+            navigator.clipboard.writeText(security.setup.secret).then(() => toast(L('sec.copied')));
+        } else if (act === 'copy-codes') {
+            navigator.clipboard.writeText(security.recovery.join('\n')).then(() => toast(L('sec.copied')));
+        } else if (act === 'codes-done') {
+            security.recovery = null; renderSecurity();
+        } else if (act === 'disable') {
+            security.disabling = true; renderSecurity();
+        } else if (act === 'cancel-disable') {
+            security.disabling = false; renderSecurity();
+        } else if (act === 'disable-confirm') {
+            const res = await apiPost({ action: 'totp_disable', code: ($('#secCode').value || '').trim() });
+            if (!res.ok) { fail(res); $('#secCode').select(); return; }
+            security.disabling = false;
+            toast(L('sec.totp_disabled_toast'));
+            await loadSecurity();
+        } else if (act === 'revoke' || act === 'revoke-others') {
+            if (act === 'revoke-others' && !confirm(L('sec.others_q'))) return;
+            const res = await apiPost(act === 'revoke' ? { action: 'device_revoke', id: b.dataset.id } : { action: 'device_revoke', all_others: '1' });
+            if (!res.ok) { fail(res); return; }
+            security.data.devices = res.devices;
+            renderSecurity();
+        }
+    });
 }
 
 // Esci: il login di questo browser viene cancellato; la pagina torna al modulo di accesso

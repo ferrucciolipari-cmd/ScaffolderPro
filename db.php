@@ -80,6 +80,21 @@ function db(): PDO {
             created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
             last_used  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
         );
+        CREATE TABLE IF NOT EXISTS login_failures (
+            ip           TEXT PRIMARY KEY,
+            fails        INTEGER NOT NULL DEFAULT 0,
+            first_at     INTEGER NOT NULL,
+            locked_until INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS auth_totp (
+            user      TEXT PRIMARY KEY,
+            secret    TEXT NOT NULL,
+            enabled   INTEGER NOT NULL DEFAULT 0,
+            pass_sig  TEXT NOT NULL DEFAULT '',
+            last_step INTEGER NOT NULL DEFAULT 0,
+            recovery  TEXT NOT NULL DEFAULT '[]',
+            created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+        );
         CREATE TABLE IF NOT EXISTS http_responses (
             request_id  INTEGER PRIMARY KEY,
             status      INTEGER,
@@ -95,6 +110,11 @@ function db(): PDO {
     ");
 
     // Colonne aggiunte dopo la prima versione: si creano anche sui database già esistenti
+    $cols = array_column($pdo->query('PRAGMA table_info(auth_tokens)')->fetchAll(), 'name');
+    if (!in_array('ip', $cols, true)) {
+        $pdo->exec("ALTER TABLE auth_tokens ADD COLUMN ip TEXT NOT NULL DEFAULT ''");
+        $pdo->exec("ALTER TABLE auth_tokens ADD COLUMN last_ip TEXT NOT NULL DEFAULT ''");
+    }
     $cols = array_column($pdo->query('PRAGMA table_info(http_requests)')->fetchAll(), 'name');
     if (!in_array('options', $cols, true)) {
         $pdo->exec("ALTER TABLE http_requests ADD COLUMN options TEXT NOT NULL DEFAULT '{}'");
