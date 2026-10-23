@@ -34,7 +34,7 @@
   "caching": "risposte con ETag e X-Golem-Data-Version: rimandare If-None-Match per ricevere 304"
  },
  "conventions": [
-  "Tutti i testi sono per lingua in langs.{iso}; i permalink sono percorsi relativi senza dominio.",
+  "Tutti i testi sono per lingua in langs.{iso}; i permalink sono percorsi senza dominio, senza / iniziale e senza prefisso di lingua.",
   "Le immagini e i file hanno url assoluti verso Golem Lite: non vanno copiati."
  ],
  "sitemaps": [
@@ -49,10 +49,10 @@
      "title": "Home",
      "langs": {
       "it": {
-       "permalink": "/"
+       "permalink": "home"
       },
       "en": {
-       "permalink": "/en/"
+       "permalink": "home-en"
       }
      },
      "kind": "page",
@@ -75,10 +75,10 @@
      "title": "Chi siamo",
      "langs": {
       "it": {
-       "permalink": "/chi-siamo"
+       "permalink": "chi-siamo"
       },
       "en": {
-       "permalink": "/en/about-us"
+       "permalink": "about-us"
       }
      },
      "kind": "page",
@@ -101,10 +101,10 @@
      "title": "Blog",
      "langs": {
       "it": {
-       "permalink": "/blog"
+       "permalink": "blog"
       },
       "en": {
-       "permalink": "/en/blog"
+       "permalink": "blog-en"
       }
      },
      "kind": "page+category",
@@ -134,10 +134,10 @@
      "title": "Footer",
      "langs": {
       "it": {
-       "permalink": "/footer"
+       "permalink": "footer"
       },
       "en": {
-       "permalink": "/en/footer"
+       "permalink": "footer-en"
       }
      },
      "kind": "container",
@@ -153,10 +153,10 @@
        "title": "Privacy",
        "langs": {
         "it": {
-         "permalink": "/privacy"
+         "permalink": "privacy"
         },
         "en": {
-         "permalink": "/en/privacy"
+         "permalink": "privacy-en"
         }
        },
        "kind": "page",
@@ -258,7 +258,7 @@
      "updated_at": "2026-10-20T09:00:00+02:00",
      "langs": {
       "it": {
-       "permalink": "/",
+       "permalink": "home",
        "title": "Home",
        "seo": {
         "indexable": true,
@@ -289,7 +289,7 @@
        }
       },
       "en": {
-       "permalink": "/en/",
+       "permalink": "home-en",
        "title": "Home",
        "seo": {
         "indexable": true,
@@ -411,7 +411,7 @@
      "updated_at": "2026-10-20T09:00:00+02:00",
      "langs": {
       "it": {
-       "permalink": "/blog/primo-articolo",
+       "permalink": "primo-articolo",
        "title": "Primo articolo",
        "seo": {
         "indexable": true,
@@ -440,7 +440,7 @@
        }
       },
       "en": {
-       "permalink": "/en/blog/first-post",
+       "permalink": "first-post",
        "title": "First post",
        "seo": {
         "indexable": true,

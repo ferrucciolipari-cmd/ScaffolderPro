@@ -211,7 +211,7 @@ check('file creati in golem/', names == ['.gitignore', '.htaccess', 'GOLEM.md', 
 bpj = json.load(open(os.path.join(GDIR, 'blueprint.json'))) if names else {}
 check('blueprint.json salvato', bpj.get('type') == 'blueprint' and bpj['instance']['uuid'] == GI, str(bpj)[:200])
 md = open(os.path.join(GDIR, 'GOLEM.md')).read() if names else ''
-check('GOLEM.md: regole, albero, modelli', 'The API key stays on the server' in md and '**Chi siamo** — page' in md and '`/en/about-us`' in md
+check('GOLEM.md: regole, albero, modelli', 'The API key stays on the server' in md and '**Chi siamo** — page' in md and '`about-us`' in md and 'without leading `/`' in md
       and '**hidden**' in md and '| `titolo` | Titolo | text |' in md and 'repeatable' in md and '`news` Notizia' in md, md[:300])
 cfg = open(os.path.join(GDIR, 'config.php')).read() if names else ''
 check('config.php con base, istanza e chiave', "'golem-test-key'" in cfg and GI in cfg and GOLEM_URL in cfg, cfg[:300])
@@ -265,14 +265,14 @@ script = r"""<?php
 error_reporting(E_ALL); ini_set('display_errors', '1');
 require $argv[1] . '/client.php';
 $o = [];
-$_SERVER['SCRIPT_NAME'] = '/sub/index.php'; $_SERVER['REQUEST_URI'] = '/sub/en/about-us?x=1';
-$o['path'] = golem_request_path(); $o['url'] = golem_url('/en/blog'); $o['base'] = golem_base_path();
+$_SERVER['SCRIPT_NAME'] = '/sub/index.php'; $_SERVER['REQUEST_URI'] = '/sub/about-us?x=1';
+$o['path'] = golem_request_path(); $o['url'] = golem_url('blog-en'); $o['base'] = golem_base_path();
 $map = golem()->sitemap('5e2f1a0b-1111-4c2d-9e3f-aaaaaaaaaaaa'); $o['s1'] = golem()->lastSource;
 golem()->sitemap('5e2f1a0b-1111-4c2d-9e3f-aaaaaaaaaaaa'); $o['s2'] = golem()->lastSource;
 $cfg = require $argv[1] . '/config.php'; $cfg['cache_ttl'] = 0;
 $c0 = new GolemClient($cfg); $c0->sitemap('5e2f1a0b-1111-4c2d-9e3f-aaaaaaaaaaaa'); $o['s3'] = $c0->lastSource;
 $hit = golem_find_node($map, $o['path']); $o['node'] = $hit ? $hit['node']['uuid'] . '/' . $hit['lang'] : null;
-$hit = golem_find_node($map, '/blog/primo-articolo'); $o['article'] = $hit && $hit['article'] ? $hit['article']['uuid'] . '/' . $hit['lang'] : null;
+$hit = golem_find_node($map, '/primo-articolo'); $o['article'] = $hit && $hit['article'] ? $hit['article']['uuid'] . '/' . $hit['lang'] : null;
 $o['none'] = golem_find_node($map, '/nope');
 $page = golem()->content('c0000000-0000-4000-8000-000000000001'); $o['title'] = golem_lang($page, 'en')['content']['hero']['titolo'];
 $o['fallback'] = golem_lang($page, 'fr')['title'];
@@ -291,7 +291,7 @@ try:
     o = json.loads(pr.stdout)
 except Exception:
     o = {'_out': pr.stdout[:400], '_err': pr.stderr[:400]}
-check('client: base path e percorso ricavati da soli', o.get('path') == '/en/about-us' and o.get('url') == '/sub/en/blog' and o.get('base') == '/sub', o)
+check('client: base path e percorso ricavati da soli', o.get('path') == '/about-us' and o.get('url') == '/sub/blog-en' and o.get('base') == '/sub', o)
 check('client: 200, poi cache, poi 304 con If-None-Match', (o.get('s1'), o.get('s2'), o.get('s3')) == ('200', 'HIT', '304'), o)
 check('client: nodo e articolo trovati dal permalink', o.get('node') == 'n0000000-0000-4000-8000-000000000002/en'
       and o.get('article') == 'a0000000-0000-4000-8000-000000000001/it' and o.get('none') is None, o)

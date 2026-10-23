@@ -148,6 +148,8 @@ front on top of it, and the front reads the updated data from the Golem API at e
 
 The front written this way has no domain inside: links are relative and the base path is found by itself, so you can move it
 to another domain or subfolder without changing anything (only `golem/config.php` if Golem moves).
+Golem permalinks have no leading `/` and no language prefix (`camere`, `camere-en`) and are unique across languages:
+the URL of a content is the base path + `/` + permalink, and the home page (`/`) is chosen by the front.
 
 ## ⬆️ Upgrading from TreeForge
 

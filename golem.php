@@ -269,13 +269,14 @@ function golemMarkdown(array $bp): string {
          . "`golem/config.php`). Never put the key, the API URL with the key, or a direct `fetch` to Golem in HTML or JavaScript. "
          . "If the browser needs data (e.g. \"load more\"), add a small PHP endpoint of the front that calls `golem()` and returns only what is needed.\n"
          . "3. **The front must be portable** to any domain or subfolder without changes: no domain or absolute path written in the code. "
-         . "Golem permalinks are relative (`/`, `/{iso}/…`): turn them into links with `golem_url(\$permalink)` (it adds the base path "
-         . "found by itself from `\$_SERVER['SCRIPT_NAME']`); assets of the front with relative paths or `golem_url('/assets/…')`. "
+         . "Turn Golem permalinks into links with `golem_url(\$permalink)` (it adds the base path found by itself from "
+         . "`\$_SERVER['SCRIPT_NAME']`, see **Permalinks and URLs** below); assets of the front with relative paths or `golem_url('/assets/…')`. "
          . "Use a front controller (`index.php`) plus an `.htaccess` with `RewriteEngine On`, `RewriteCond %{REQUEST_FILENAME} !-f`, "
          . "`RewriteCond %{REQUEST_FILENAME} !-d`, `RewriteRule ^ index.php [L,QSA]` (no `RewriteBase`), and read the route with `golem_request_path()`.\n"
          . "4. **Media** (images, files, galleries, og_image) are objects with an absolute `url` towards Golem Lite: use them as they are, do not download them.\n"
          . "5. **Languages**: every response has all the languages in `langs.{iso}`; texts of one language with `golem_lang(\$item, \$iso)` "
-         . "(falls back to the primary language). The language of a request comes from the permalink that matched (`golem_find_node()`).\n"
+         . "(falls back to the primary language). The language of a request comes from the permalink that matched (`golem_find_node()`): "
+         . "there is no language prefix in the URL.\n"
          . "6. **Errors**: `golem()` throws `GolemException` (`->status`, `->apiCode`). 404 → page \"not found\" of the front with HTTP 404; "
          . "401/403 → configuration problem (key, scope `content.read`, IP or domain filter of the key): show a generic error, log the detail. "
          . "If Golem is unreachable or answers 5xx/429 the client returns the last cached copy when it has one.\n"
@@ -291,7 +292,18 @@ function golemMarkdown(array $bp): string {
          . "| article | `golem()->content(article.uuid)` | the sitemap lists the articles of each category (`articles[{uuid, published_at, langs{iso:{title, permalink}}}]`) |\n\n"
          . "Routing: call `golem()->sitemap(SITEMAP)` (cached), then `golem_find_node(\$sitemap, golem_request_path())` returns "
          . "`['node' => …, 'article' => …|null, 'lang' => iso]` or null (→ 404). Build menus from the same sitemap response, so new pages "
-         . "appear without regenerating the front. Hidden nodes and unpublished contents are never in the responses.\n\n";
+         . "appear without regenerating the front. Hidden nodes and unpublished contents are never in the responses.\n\n"
+         . "## Permalinks and URLs\n\n"
+         . "- In the data (`langs.{iso}.permalink` of nodes, pages and articles) a permalink is a plain path **without leading `/` and without "
+         . "language prefix**, e.g. `home`, `camere`, `camere-en`, `blog/primo-articolo`. It may contain `/`, never `? & = #`.\n"
+         . "- Permalinks are **unique in the whole CMS, across all languages** (the other languages usually get `-{iso}` or their own translation), "
+         . "so the permalink alone identifies the content and its language: the URL of a content is `golem_url(\$permalink)` = base path + `/` + permalink "
+         . "(e.g. `/camere-en`, or `/sub/camere-en` in a subfolder). Do not add `/{iso}/` in front: `golem_find_node()` would no longer find it.\n"
+         . "- The **home page** has a permalink like the others (often `home`): route `/` to the home node yourself (the node whose slug is `home`, "
+         . "otherwise the first `page` node of the main sitemap) in the primary language, and link the home as `golem_url('')`. "
+         . "A request to `/home` can redirect (301) to `/`.\n"
+         . "- A language switcher links the same node in another language: `golem_url(\$node['langs'][\$iso]['permalink'])`.\n"
+         . "- The CMS editor may show a `/{iso}/` prefix next to the permalink field: it is only visual, it is not part of the data.\n\n";
 
     $conv = (array)($bp['conventions'] ?? []);
     if ($conv) {
@@ -381,7 +393,7 @@ function golemClientPhp(): string {
  *   $page = golem()->content('CONTENT-UUID');                // one page or article, all languages
  *   $list = golem()->category('NODE-UUID', 1, 20);           // articles of a category, paginated
  *   $txt  = golem_lang($page, $hit['lang']);                 // title, seo, content of one language
- *   echo '<a href="' . htmlspecialchars(golem_url($txt['permalink'])) . '">';
+ *   echo '<a href="' . htmlspecialchars(golem_url($txt['permalink'])) . '">';   // permalink 'camere-en' → '/camere-en'
  */
 
 class GolemException extends RuntimeException
@@ -567,13 +579,13 @@ function golem_base_path()
     return $d === '.' || $d === '/' ? '' : rtrim($d, '/');
 }
 
-/** Link of a relative Golem permalink (or of an asset of the front) under the base path: '/en/about' → '/sub/en/about'. */
+/** Link of a Golem permalink (no leading slash, no language prefix) or of an asset of the front under the base path: 'camere-en' → '/sub/camere-en'. */
 function golem_url($permalink)
 {
     return golem_base_path() . '/' . ltrim((string)$permalink, '/');
 }
 
-/** Path requested by the browser relative to the base path: '/', '/en/about', … */
+/** Path requested by the browser relative to the base path: '/', '/camere-en', … */
 function golem_request_path()
 {
     $p = rawurldecode((string)parse_url(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH));

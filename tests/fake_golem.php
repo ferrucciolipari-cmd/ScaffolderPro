@@ -29,7 +29,7 @@ if (isset($_GET['sitemap'])) {
     $sm = $bp['sitemaps'][0];
     $art = $bp['model_groups']['2']['example']['data'];
     $sm['nodes'][2]['articles'] = [['uuid' => $art['uuid'], 'published_at' => $art['published_at'],
-        'langs' => ['it' => ['title' => 'Primo articolo', 'permalink' => '/blog/primo-articolo'], 'en' => ['title' => 'First post', 'permalink' => '/en/blog/first-post']]]];
+        'langs' => ['it' => ['title' => 'Primo articolo', 'permalink' => 'primo-articolo'], 'en' => ['title' => 'First post', 'permalink' => 'first-post']]]];
     $out(200, ['type' => 'sitemap', 'instance' => $inst, 'primary_lang' => 'it', 'sitemap' => ['uuid' => $sm['uuid'], 'label' => $sm['label']], 'nodes' => $sm['nodes']]);
 }
 if (isset($_GET['uuid'])) {
