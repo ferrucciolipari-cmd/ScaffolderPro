@@ -475,6 +475,10 @@ function configDefaults(): array {
         'claude_apply_save' => false, // proposte di Claude: false = nell'editor da salvare, true = salvate subito
         'error_log_path' => '',     // log degli errori PHP aggiuntivo (es. quello del dominio su Plesk)
         'upload_max_gb' => 5,       // dimensione massima di un singolo file caricato (a pezzi)
+        'theme'         => 'dark',  // tema dell'interfaccia: dark | light | auto (segue il sistema)
+        'minimap'       => true,    // minimappa a destra dell'editor
+        'format_on_save' => false,  // formatta il documento (Prettier) prima di salvarlo
+        'emmet'         => true,    // abbreviazioni Emmet con Tab in HTML/PHP/CSS
     ];
 }
 

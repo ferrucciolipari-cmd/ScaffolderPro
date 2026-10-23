@@ -948,7 +948,8 @@ switch ($action) {
         if (isset($in['editor_wrap'])) $cfg['editor_wrap'] = (bool)$in['editor_wrap'];
         if (isset($in['show_right']))  $cfg['show_right']  = (bool)$in['show_right'];
         if (isset($in['language']) && isset(LANGUAGES[$in['language']])) $cfg['language'] = $in['language'];
-        foreach (['php_lint', 'php_lint_live', 'claude_apply_save'] as $k) {
+        if (isset($in['theme']) && in_array($in['theme'], ['dark', 'light', 'auto'], true)) $cfg['theme'] = $in['theme'];
+        foreach (['php_lint', 'php_lint_live', 'claude_apply_save', 'minimap', 'format_on_save', 'emmet'] as $k) {
             if (isset($in[$k])) $cfg[$k] = (bool)$in[$k];
         }
         if (isset($in['error_log_path'])) {

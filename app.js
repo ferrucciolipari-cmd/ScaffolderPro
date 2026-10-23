@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDiffView();
     initQuickOpen();
     initNavHistory();
+    initEditorTools();
     initSetupAuth();
     initLogout();
     initMenuOverlay();
@@ -1423,7 +1424,7 @@ function activateTab(path) {
     $('#diffView').hidden = !isDiff;
     $('#editorTopbar').hidden = isHttp || isDiff;
     if (isDiff) {
-        $('#editor').hidden = true;
+        $('#editorWrap').hidden = true;
         $('#imageView').hidden = true;
         $('#versionsCard').hidden = true;
         renderDiffTab(tab);
@@ -1435,7 +1436,7 @@ function activateTab(path) {
         return;
     }
     if (isHttp) {
-        $('#editor').hidden = true;
+        $('#editorWrap').hidden = true;
         $('#imageView').hidden = true;
         $('#versionsCard').hidden = true;
         renderHttp(tab);
@@ -1448,7 +1449,7 @@ function activateTab(path) {
         return;
     }
     const isCode = tab.kind === 'code' && editor;
-    $('#editor').hidden = !isCode;
+    $('#editorWrap').hidden = !isCode;
     $('#imageView').hidden = tab.kind === 'code';
     if (isCode) {
         editor.setSession(tab.session);
@@ -1472,6 +1473,8 @@ function activateTab(path) {
     document.title = baseName(path) + ' — Scaffolder Pro';
     const pos = isCode ? editor.getCursorPosition() : { row: 0, column: 0 };
     navRecord(path, pos.row, pos.column);
+    scheduleMinimap();
+    if (isCode && APP.config.emmet && EMMET_MARKUP.concat(EMMET_CSS).includes(extOf(path))) loadEmmet();
 }
 
 function showNonCode(tab) {
@@ -1522,7 +1525,7 @@ function closeTab(path, force = false) {
 function showWelcome() {
     state.active = null;
     $('#welcome').hidden = false;
-    $('#editor').hidden = true;
+    $('#editorWrap').hidden = true;
     $('#imageView').hidden = true;
     $('#editorTopbar').hidden = true;
     $('#fileNotice').hidden = true;
@@ -1554,6 +1557,11 @@ function updateTopbar() {
     $('#previewBtn').title = APP.publicUrl ? '' : L('js.root_not_docroot');
     $('#splitBtn').hidden = !APP.publicUrl;
     $('#deleteBtn').disabled = !tab.writable;
+    $('#formatBtn').disabled = !isCode || !tab.writable || !formatterFor(tab.path);
+    $('#symbolsBtn').disabled = !isCode;
+    $('#minimapBtn').hidden = !isCode;
+    $('#minimapBtn').classList.toggle('on', !!APP.config.minimap);
+    $('#minimapBtn').setAttribute('aria-checked', String(!!APP.config.minimap));
     updateSaveStatus(tab);
 }
 
@@ -1586,9 +1594,15 @@ function setTabFromDisk(tab, f) {
     markTabDirty(tab);
 }
 
-function saveActive({ force = false, overwriteDisk = false } = {}) {
+function saveActive({ force = false, overwriteDisk = false, formatted = false } = {}) {
     const tab = tabFor(state.active);
     if (!tab || tab.kind !== 'code' || !tab.writable || tab.saving) return;
+    // "Formatta al salvataggio": prima Prettier (se il file ha errori di sintassi si salva com'è)
+    if (APP.config.format_on_save && !formatted && formatterFor(tab.path)) {
+        tab.saving = true;
+        formatTab(tab, { quiet: true }).catch(() => {}).then(() => { tab.saving = false; saveActive({ force, overwriteDisk, formatted: true }); });
+        return;
+    }
     const code = tab.session.getValue();
     tab.saving = true;
     updateSaveStatus(tab, L('js.saving'));
@@ -1673,6 +1687,14 @@ function initTopbar() {
         closeMenu();
         if (!state.active) return;
         switch (b.dataset.ed) {
+            case 'format': formatTab(tabFor(state.active)); break;
+            case 'symbols': openSymbols(); break;
+            case 'minimap':
+                APP.config.minimap = !APP.config.minimap;
+                apiPost({ action: 'save_settings', settings: { minimap: APP.config.minimap } }).then(r => { if (r.ok) APP.config = r.config; });
+                updateTopbar();
+                scheduleMinimap();
+                break;
             case 'preview': openPreviewWindow(state.active); break;
             case 'split': toggleSplit(); break;
             case 'download': downloadPath(state.active); break;
@@ -2145,6 +2167,10 @@ function initSettings() {
         const c = APP.config;
         ['dev_name', 'environment', 'default_root', 'backup_skip', 'claude_model', 'claude_effort', 'editor_font', 'upload_max_gb'].forEach(k => { form[k].value = c[k] ?? ''; });
         form.editor_wrap.checked = !!c.editor_wrap;
+        form.theme.value = c.theme || 'dark';
+        form.minimap.checked = !!c.minimap;
+        form.format_on_save.checked = !!c.format_on_save;
+        form.emmet.checked = !!c.emmet;
         form.show_right.checked = !!c.show_right;
         form.language.value = APP.lang;
         $('#langFlag').innerHTML = APP.flags[APP.lang] || '';
@@ -2191,6 +2217,7 @@ function initSettings() {
             dev_name: form.dev_name.value, environment: form.environment.value, default_root: form.default_root.value,
             backup_skip: form.backup_skip.value, claude_model: form.claude_model.value, claude_effort: form.claude_effort.value,
             editor_font: form.editor_font.value, editor_wrap: form.editor_wrap.checked, show_right: form.show_right.checked,
+            theme: form.theme.value, minimap: form.minimap.checked, format_on_save: form.format_on_save.checked, emmet: form.emmet.checked,
             language: form.language.value,
             api_key: form.api_key.value, remove_api_key: form.remove_api_key.checked,
             php_lint: form.php_lint.checked, php_lint_live: form.php_lint_live.checked,
@@ -2206,6 +2233,9 @@ function initSettings() {
             if (fontChanged) applyEditorZoom(parseInt(res.config.editor_font, 10));
             state.tabs.forEach(t => t.session && t.session.setUseWrapMode(!!res.config.editor_wrap));
             applyRightVisibility();
+            minimap.colors = null;
+            applyTheme();
+            if (state.active) updateTopbar();
             if (editor) editor.resize();
             $('#claudeModel').value = res.config.claude_model;
             $('#claudeEffort').value = res.config.claude_effort;
@@ -3678,6 +3708,449 @@ function initNavHistory() {
 }
 
 // ----------------------------------------------------------------------------
+// TEMA: scuro / chiaro / come il sistema (<html data-theme>, colori in style.css)
+// ----------------------------------------------------------------------------
+const themeMedia = window.matchMedia('(prefers-color-scheme: light)');
+
+function isLightTheme() {
+    const t = APP.config.theme || 'dark';
+    return t === 'light' || (t === 'auto' && themeMedia.matches);
+}
+
+function applyTheme() {
+    document.documentElement.dataset.theme = APP.config.theme || 'dark';
+    if (editor) editor.setTheme(isLightTheme() ? 'ace/theme/tomorrow' : 'ace/theme/tomorrow_night');
+    scheduleMinimap();
+}
+
+// ----------------------------------------------------------------------------
+// FORMATTA DOCUMENTO (Prettier, caricato da lib/prettier solo al primo uso) — ⇧⌥F
+// ----------------------------------------------------------------------------
+const FORMATTERS = {
+    php: { parser: 'php', plugins: ['php'] },
+    js: { parser: 'babel', plugins: ['babel', 'estree'] }, mjs: { parser: 'babel', plugins: ['babel', 'estree'] },
+    jsx: { parser: 'babel', plugins: ['babel', 'estree'] }, json: { parser: 'json', plugins: ['babel', 'estree'] },
+    ts: { parser: 'typescript', plugins: ['typescript', 'estree'] }, tsx: { parser: 'typescript', plugins: ['typescript', 'estree'] },
+    css: { parser: 'css', plugins: ['postcss'] }, scss: { parser: 'scss', plugins: ['postcss'] },
+    html: { parser: 'html', plugins: ['html', 'postcss', 'babel', 'estree'] }, htm: { parser: 'html', plugins: ['html', 'postcss', 'babel', 'estree'] },
+    vue: { parser: 'vue', plugins: ['html', 'postcss', 'babel', 'estree'] },
+    md: { parser: 'markdown', plugins: ['markdown'] }, yml: { parser: 'yaml', plugins: ['yaml'] }, yaml: { parser: 'yaml', plugins: ['yaml'] },
+};
+const formatterFor = (path) => FORMATTERS[extOf(path)] || null;
+const scriptCache = new Map();
+
+/** Carica uno script di lib/ una volta sola. */
+function loadScript(src) {
+    if (!scriptCache.has(src)) {
+        scriptCache.set(src, new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            el.src = src;
+            el.onload = resolve;
+            el.onerror = () => { scriptCache.delete(src); reject(new Error(src)); };
+            document.head.appendChild(el);
+        }));
+    }
+    return scriptCache.get(src);
+}
+
+async function loadPrettier(plugins) {
+    await loadScript('lib/prettier/standalone.js');
+    await Promise.all(plugins.map(p => loadScript('lib/prettier/plugins/' + p + '.js')));
+    return { prettier: window.prettier, plugins: plugins.map(p => window.prettierPlugins[p]) };
+}
+
+/**
+ * Formatta il testo della scheda. Sostituisce tutto con un solo passo annullabile (⌘Z) e tiene il cursore
+ * vicino allo stesso punto. Restituisce true se il testo è cambiato.
+ */
+async function formatTab(tab, { quiet = false } = {}) {
+    const f = tab && tab.kind === 'code' && tab.session && formatterFor(tab.path);
+    if (!f) { if (!quiet) toast(L('fmt.not_supported'), 'warn'); return false; }
+    if (!tab.writable) { if (!quiet) toast(L('fmt.readonly'), 'warn'); return false; }
+    const text = tab.session.getValue();
+    const doc = tab.session.getDocument();
+    const isActive = editor && editor.session === tab.session;
+    const cursor = isActive ? doc.positionToIndex(editor.getCursorPosition()) : 0;
+    let res;
+    try {
+        if (!quiet && !window.prettier) toast(L('fmt.loading'));
+        const { prettier, plugins } = await loadPrettier(f.plugins);
+        const opts = { parser: f.parser, plugins, cursorOffset: Math.min(cursor, text.length), printWidth: 120, singleQuote: true,
+            tabWidth: tab.session.getTabSize(), useTabs: !tab.session.getUseSoftTabs() };
+        if (f.parser === 'php') opts.phpVersion = (APP.php.server || '8.0').split('.').slice(0, 2).join('.');
+        res = await prettier.formatWithCursor(text, opts);
+    } catch (err) {
+        if (!quiet) {
+            const line = err && err.loc && err.loc.start ? err.loc.start.line : null;
+            const msg = String(err && err.message || err).split('\n')[0].replace(/\s*\(\d+:\d+\)\s*$/, '');
+            toast(line ? L('fmt.error_line', { line, error: msg }) : L('fmt.error', { error: msg }), 'error');
+        }
+        return false;
+    }
+    if (res.formatted === text) { if (!quiet) toast(L('fmt.already')); return false; }
+    if (tab.session.getValue() !== text) return false;   // modificato nel frattempo: si lascia stare
+    const Range = ace.require('ace/range').Range;
+    const last = doc.getLength() - 1;
+    tab.session.replace(new Range(0, 0, last, doc.getLine(last).length), res.formatted);
+    if (isActive && res.cursorOffset >= 0) {
+        const p = doc.indexToPosition(res.cursorOffset);
+        editor.clearSelection();
+        editor.moveCursorToPosition(p);
+        editor.renderer.scrollCursorIntoView(p, 0.5);
+    }
+    if (!quiet) toast(L('fmt.done'));
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// EMMET: abbreviazione + Tab in HTML, PHP (fuori da <?php ?>), CSS, SCSS
+// es. ul>li.item*3 → lista, a:link, !, p10 (CSS) → padding: 10px;
+// ----------------------------------------------------------------------------
+const emmet = { mod: null, loading: null };
+const EMMET_MARKUP = ['html', 'htm', 'php', 'phtml', 'vue'];
+const EMMET_CSS = ['css', 'scss'];
+const HTML_TAGS = new Set(('a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption cite code col colgroup data datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 head header hgroup hr html i iframe img input ins kbd label legend li link main map mark menu meta meter nav noscript object ol optgroup option output p param picture pre progress q rp rt ruby s samp script section select slot small source span strong style sub summary sup table tbody td template textarea tfoot th thead time title tr track u ul var video wbr svg path').split(' '));
+
+function loadEmmet() {
+    if (emmet.mod) return Promise.resolve(emmet.mod);
+    if (!emmet.loading) {
+        emmet.loading = import(new URL('lib/emmet/emmet.js', location.href).href)
+            .then(m => { emmet.mod = m; return m; })
+            .catch(err => { emmet.loading = null; console.warn('Emmet', err); return null; });
+    }
+    return emmet.loading;
+}
+
+/** Tab: se prima del cursore c'è un'abbreviazione Emmet la espande (con i punti di inserimento), altrimenti false = Tab normale. */
+function emmetExpand(ed) {
+    const tab = tabFor(state.active);
+    if (!APP.config.emmet || !emmet.mod || !tab || tab.kind !== 'code' || !ed.selection.isEmpty() || ed.inMultiSelectMode) return false;
+    const ext = extOf(tab.path);
+    const markup = EMMET_MARKUP.includes(ext), css = EMMET_CSS.includes(ext);
+    if (!markup && !css) return false;
+    const pos = ed.getCursorPosition();
+    const doc = ed.session.getDocument();
+    const before = doc.getTextRange({ start: { row: 0, column: 0 }, end: pos });
+    if (ext === 'php' || ext === 'phtml') {
+        // Dentro il codice PHP niente Emmet
+        if (before.lastIndexOf('<?') > before.lastIndexOf('?>')) return false;
+    }
+    if (markup) {
+        // Dentro <style>/<script> o dentro un tag (attributi) niente Emmet
+        const lower = before.toLowerCase();
+        if (lower.lastIndexOf('<style') > lower.lastIndexOf('</style') || lower.lastIndexOf('<script') > lower.lastIndexOf('</script')) return false;
+    }
+    const line = ed.session.getLine(pos.row);
+    let found;
+    try {
+        found = emmet.mod.extract(line, pos.column, { type: css ? 'stylesheet' : 'markup', lookAhead: markup });
+    } catch (e) { return false; }
+    if (!found || !found.abbreviation) return false;
+    const abbr = found.abbreviation;
+    if (markup) {
+        // Una parola qualunque non diventa un tag: solo tag HTML veri, "!" o abbreviazioni con operatori
+        const word = /^[a-z][a-z0-9-]*$/i.test(abbr);
+        if (word && !HTML_TAGS.has(abbr.toLowerCase())) return false;
+        if (!word && abbr !== '!' && !/[.#>+*^\[\]{}():$@!]/.test(abbr)) return false;
+    } else {
+        // CSS: solo dentro un blocco { } e all'inizio di una dichiarazione
+        const opens = (before.match(/\{/g) || []).length, closes = (before.match(/\}/g) || []).length;
+        if (opens <= closes || line.slice(0, found.start).trim() !== '' || abbr.length > 30) return false;
+    }
+    let out;
+    try {
+        out = emmet.mod.default(abbr, {
+            type: css ? 'stylesheet' : 'markup',
+            syntax: css ? ext : 'html',
+            options: {
+                'output.field': (i, placeholder) => '${' + i + (placeholder ? ':' + placeholder.replace(/[$}\\]/g, '\\$&') : '') + '}',
+                'output.text': (text) => text.replace(/[$}\\]/g, '\\$&'),
+                'output.indent': ed.session.getTabString(),
+            },
+        });
+    } catch (e) { return false; }
+    if (!out || out === abbr) return false;
+    const Range = ace.require('ace/range').Range;
+    ed.session.remove(new Range(pos.row, found.start, pos.row, found.end));
+    ed.moveCursorTo(pos.row, found.start);
+    ace.require('ace/snippets').snippetManager.insertSnippet(ed, out);
+    return true;
+}
+
+// ----------------------------------------------------------------------------
+// MINIMAPPA a destra dell'editor: righe in miniatura con i colori della sintassi,
+// riquadro della parte visibile; clic = va lì, trascinare il riquadro = scorre
+// ----------------------------------------------------------------------------
+const minimap = { raf: 0, mmScroll: 0, drag: null, colors: null, hover: false };
+const MM_LINE = 2, MM_PAD = 6;
+
+function minimapOn() {
+    return !!APP.config.minimap && !IS_TOUCH && window.innerWidth > 760;
+}
+
+function scheduleMinimap() {
+    if (minimap.raf) return;
+    minimap.raf = requestAnimationFrame(() => { minimap.raf = 0; drawMinimap(); });
+}
+
+function minimapColors() {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (n) => cs.getPropertyValue(n).trim();
+    return {
+        bg: v('--c-1e1e1e'), text: v('--c-d4d4d4'), comment: v('--c-6a9955'), string: v('--c-ce9178'), keyword: v('--c-569cd6'),
+        control: v('--c-c586c0'), number: v('--c-b5cea8'), fn: v('--c-dcdcaa'), variable: v('--c-9cdcfe'), type: v('--c-4ec9b0'),
+        slider: isLightTheme() ? 'rgba(0, 0, 0, 0.09)' : 'rgba(121, 121, 121, 0.2)',
+        sliderHover: isLightTheme() ? 'rgba(0, 0, 0, 0.16)' : 'rgba(121, 121, 121, 0.35)',
+    };
+}
+
+function tokenColor(type, c) {
+    if (type.includes('comment')) return c.comment;
+    if (type.includes('string')) return c.string;
+    if (type.includes('keyword.control')) return c.control;
+    if (type.includes('numeric')) return c.number;
+    if (type.includes('entity.name.function') || type.includes('support.function')) return c.fn;
+    if (type.includes('support.class') || type.includes('entity.name.type') || type.includes('support.type')) return c.type;
+    if (type.includes('keyword') || type.includes('storage') || type.includes('constant.language') || type.includes('meta.tag') || type.includes('entity.name.tag')) return c.keyword;
+    if (type.includes('variable') || type.includes('attribute-name')) return c.variable;
+    return c.text;
+}
+
+/** Geometria: righe visibili, scorrimento della minimappa, posizione del riquadro. */
+function minimapGeometry() {
+    const canvas = $('#minimap');
+    const H = canvas.clientHeight;
+    const rows = editor.session.getLength();
+    const first = editor.renderer.getFirstVisibleRow();
+    const last = Math.min(rows - 1, editor.renderer.getLastVisibleRow());
+    const visible = Math.max(1, last - first + 1);
+    const contentH = rows * MM_LINE;
+    const ratio = rows > visible ? first / (rows - visible) : 0;
+    const mmScroll = contentH > H ? ratio * (contentH - H) : 0;
+    return { H, rows, first, visible, contentH, mmScroll, sliderTop: first * MM_LINE - mmScroll, sliderH: Math.max(8, visible * MM_LINE) };
+}
+
+function drawMinimap() {
+    const canvas = $('#minimap');
+    const tab = tabFor(state.active);
+    const show = minimapOn() && editor && tab && tab.kind === 'code' && editor.session === tab.session;
+    if (canvas.hidden === !!show) { canvas.hidden = !show; if (editor) editor.resize(); }
+    if (!show) return;
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    if (!W || !H) return;
+    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const c = minimap.colors || (minimap.colors = minimapColors());
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(0, 0, W, H);
+    const g = minimapGeometry();
+    minimap.mmScroll = g.mmScroll;
+    const session = editor.session;
+    const tabSize = session.getTabSize();
+    const from = Math.floor(g.mmScroll / MM_LINE), to = Math.min(g.rows, from + Math.ceil(H / MM_LINE) + 1);
+    ctx.globalAlpha = 0.85;
+    for (let row = from; row < to; row++) {
+        const y = row * MM_LINE - g.mmScroll;
+        let x = MM_PAD;
+        for (const tok of session.getTokens(row)) {
+            const color = tokenColor(tok.type || '', c);
+            for (const part of tok.value.split(/(\s+)/)) {
+                if (!part) continue;
+                const len = part.replace(/\t/g, ' '.repeat(tabSize)).length;
+                if (!/^\s+$/.test(part)) { ctx.fillStyle = color; ctx.fillRect(x, y, Math.min(len, W - x), MM_LINE - 0.6); }
+                x += len;
+                if (x >= W) break;
+            }
+            if (x >= W) break;
+        }
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = minimap.hover || minimap.drag ? c.sliderHover : c.slider;
+    ctx.fillRect(0, g.sliderTop, W, g.sliderH);
+}
+
+function initMinimap() {
+    const canvas = $('#minimap');
+    if (!editor || !canvas) return;
+    editor.on('change', scheduleMinimap);
+    editor.on('changeSession', scheduleMinimap);
+    editor.renderer.on('afterRender', scheduleMinimap);
+    editor.on('changeSession', (e) => { if (e.session) e.session.on('tokenizerUpdate', scheduleMinimap); });
+    window.addEventListener('resize', scheduleMinimap);
+    themeMedia.addEventListener && themeMedia.addEventListener('change', () => { minimap.colors = null; applyTheme(); });
+    const rowAt = (y) => Math.max(0, Math.min(editor.session.getLength() - 1, Math.floor((y + minimap.mmScroll) / MM_LINE)));
+    canvas.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const y = e.offsetY;
+        const g = minimapGeometry();
+        if (y >= g.sliderTop && y <= g.sliderTop + g.sliderH) {
+            // Trascinamento del riquadro: come la barra di scorrimento
+            minimap.drag = { y: e.clientY, first: g.first, scale: g.contentH > g.H ? (g.rows - g.visible) / Math.max(1, g.H - g.sliderH) : 1 / MM_LINE };
+        } else {
+            editor.scrollToLine(rowAt(y), true, false, () => {});
+            minimap.drag = { y: e.clientY, first: editor.renderer.getFirstVisibleRow(), scale: g.contentH > g.H ? (g.rows - g.visible) / Math.max(1, g.H - g.sliderH) : 1 / MM_LINE };
+        }
+        const move = (ev) => {
+            const d = minimap.drag;
+            if (!d) return;
+            editor.renderer.scrollToRow(Math.max(0, Math.round(d.first + (ev.clientY - d.y) * d.scale)));
+        };
+        const up = () => { minimap.drag = null; scheduleMinimap(); window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+        scheduleMinimap();
+    });
+    canvas.addEventListener('mousemove', (e) => {
+        const g = minimapGeometry();
+        const on = e.offsetY >= g.sliderTop && e.offsetY <= g.sliderTop + g.sliderH;
+        if (on !== minimap.hover) { minimap.hover = on; scheduleMinimap(); }
+    });
+    canvas.addEventListener('mouseleave', () => { minimap.hover = false; scheduleMinimap(); });
+    canvas.addEventListener('wheel', (e) => { e.preventDefault(); editor.session.setScrollTop(editor.session.getScrollTop() + e.deltaY); }, { passive: false });
+}
+
+// ----------------------------------------------------------------------------
+// VAI AL SIMBOLO (⇧⌘O / Ctrl+Shift+O): funzioni, classi, metodi, costanti, selettori CSS, titoli, id…
+// Riconoscimento per righe (veloce, senza analizzatori): basta per orientarsi nel file.
+// ----------------------------------------------------------------------------
+const symbolView = { items: [], list: [], idx: 0 };
+
+/** Simboli del testo: [{name, kind, row, col}] nell'ordine del file. */
+function getSymbols(path, text) {
+    const ext = extOf(path);
+    const lines = text.split('\n');
+    const out = [];
+    const add = (name, kind, row, col) => { if (name) out.push({ name: name.trim().replace(/\s+/g, ' ').slice(0, 100), kind, row, col: Math.max(0, col) }); };
+    const JS_SKIP = new Set(['if', 'for', 'while', 'switch', 'catch', 'function', 'return', 'else', 'do', 'try', 'with', 'new', 'typeof']);
+    const markup = ['html', 'htm', 'vue', 'php', 'phtml'].includes(ext);
+    let depth = 0, classDepth = -1;
+    lines.forEach((ln, row) => {
+        let m;
+        if (ext === 'php' || ext === 'phtml') {
+            if ((m = ln.match(/^\s*(?:(?:abstract|final|readonly)\s+)*(class|interface|trait|enum)\s+([A-Za-z_]\w*)/))) { add(m[2], m[1] === 'class' ? 'class' : m[1], row, ln.indexOf(m[2])); classDepth = depth; }
+            else if ((m = ln.match(/^\s*(?:(?:public|protected|private|static|abstract|final)\s+)*function\s+&?\s*([A-Za-z_]\w*)\s*\(/))) add(m[1], classDepth >= 0 && depth > classDepth ? 'method' : 'function', row, ln.indexOf(m[1]));
+            else if ((m = ln.match(/^\s*(?:(?:public|protected|private|final)\s+)*const\s+([A-Za-z_]\w*)\s*=/))) add(m[1], 'const', row, ln.indexOf(m[1]));
+            else if ((m = ln.match(/\bdefine\(\s*['"]([A-Za-z_]\w*)['"]/))) add(m[1], 'const', row, ln.indexOf(m[1]));
+        } else if (['js', 'mjs', 'jsx', 'ts', 'tsx', 'vue'].includes(ext)) {
+            if ((m = ln.match(/^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s+([A-Za-z_$][\w$]*)/))) { add(m[1], 'class', row, ln.indexOf(m[1])); classDepth = depth; }
+            else if ((m = ln.match(/^\s*(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)\s*\(/))) add(m[1], 'function', row, ln.indexOf(m[1]));
+            else if ((m = ln.match(/^\s*(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s+)?(?:function\b|\([^)]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)/))) add(m[1], 'function', row, ln.indexOf(m[1]));
+            else if (classDepth >= 0 && depth === classDepth + 1 && (m = ln.match(/^\s*(?:static\s+|async\s+|get\s+|set\s+|public\s+|private\s+|protected\s+)*([A-Za-z_$#][\w$]*)\s*\([^)]*\)\s*(?::\s*[^{]+)?\{/)) && !JS_SKIP.has(m[1])) add(m[1], 'method', row, ln.indexOf(m[1]));
+            else if ((m = ln.match(/^\s*(?:export\s+)?(?:interface|type)\s+([A-Za-z_$][\w$]*)/))) add(m[1], 'type', row, ln.indexOf(m[1]));
+        } else if (ext === 'css' || ext === 'scss') {
+            if ((m = ln.match(/^\s*(@(?:media|supports|keyframes|font-face|layer|container|mixin|include)[^{;]*)\{/))) add(m[1], '@', row, ln.indexOf('@'));
+            else if ((m = ln.match(/^\s*([^{};@\s/][^{};]*?)\s*\{/))) add(m[1], 'selector', row, ln.search(/\S/));
+        } else if (ext === 'md') {
+            if ((m = ln.match(/^(#{1,6})\s+(.*)$/))) add(m[2], 'h' + m[1].length, row, 0);
+        } else if (ext === 'sql') {
+            if ((m = ln.match(/create\s+(?:or\s+replace\s+)?(table|view|index|procedure|function|trigger)\s+(?:if\s+not\s+exists\s+)?[`"[]?([\w.]+)/i))) add(m[2], m[1].toLowerCase(), row, ln.indexOf(m[2]));
+        } else if (ext === 'yml' || ext === 'yaml') {
+            if ((m = ln.match(/^([A-Za-z_][\w.-]*)\s*:/))) add(m[1], 'key', row, 0);
+        }
+        if (markup) {
+            const re = /<h([1-6])\b[^>]*>(.*?)<\/h\1>/gi;
+            while ((m = re.exec(ln))) add(m[2].replace(/<[^>]*>/g, '').replace(/<\?.*?\?>/g, '…'), 'h' + m[1], row, m.index);
+            const reId = /<([a-z][\w-]*)\b[^>]*?\bid=["']([^"'<>]+)["']/gi;
+            while ((m = reId.exec(ln))) add(m[1].toLowerCase() + '#' + m[2], 'id', row, m.index);
+        }
+        // Profondità delle graffe (approssimata) per distinguere metodi e funzioni
+        for (const ch of ln.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '')) {
+            if (ch === '{') depth++;
+            else if (ch === '}') { depth = Math.max(0, depth - 1); if (depth <= classDepth) classDepth = -1; }
+        }
+    });
+    return out;
+}
+
+const SYMBOL_BADGE = { function: 'ƒ', method: 'm', class: 'C', interface: 'I', trait: 'T', enum: 'E', type: 'T', const: 'K',
+    selector: '{}', '@': '@', id: '#', key: 'k', table: 'tbl', view: 'v', index: 'idx', procedure: 'p', trigger: 't' };
+
+function openSymbols() {
+    const tab = tabFor(state.active);
+    if (!tab || tab.kind !== 'code' || !tab.session) return;
+    symbolView.items = getSymbols(tab.path, tab.session.getValue());
+    const row = editor ? editor.getCursorPosition().row : 0;
+    let near = 0;
+    symbolView.items.forEach((s, i) => { if (s.row <= row) near = i; });
+    symbolView.idx = near;
+    $('#symInput').value = '';
+    renderSymbols();
+    showModal($('#symbolDialog'));
+    focusSoft($('#symInput'));
+}
+
+function renderSymbols() {
+    const q = $('#symInput').value.trim().toLowerCase().replace(/\s+/g, '');
+    let list = symbolView.items.map(s => ({ s, hits: [], score: 0 }));
+    if (q) {
+        list = [];
+        symbolView.items.forEach(s => { const r = fuzzyScore(s.name, q); if (r) list.push({ s, hits: r.hits, score: r.score }); });
+        list.sort((a, b) => b.score - a.score || a.s.row - b.s.row);
+    }
+    symbolView.list = list;
+    symbolView.idx = Math.min(symbolView.idx, Math.max(0, list.length - 1));
+    const mark = (name, hits) => { const set = new Set(hits); return [...name].map((ch, i) => set.has(i) ? `<mark>${esc(ch)}</mark>` : esc(ch)).join(''); };
+    $('#symList').innerHTML = list.length
+        ? list.map((it, i) => `<div class="qo-item sym-item${i === symbolView.idx ? ' active' : ''}" data-i="${i}">`
+            + `<span class="sym-kind k-${esc(it.s.kind.replace(/[^a-z0-9@]/gi, ''))}">${esc(SYMBOL_BADGE[it.s.kind] || it.s.kind)}</span>`
+            + `<span class="qo-name">${mark(it.s.name, it.hits)}</span><span class="qo-dir">${esc(L('sym.line', { n: it.s.row + 1 }))}</span></div>`).join('')
+        : `<div class="log-empty">${esc(L(symbolView.items.length ? 'qo.none' : 'sym.none'))}</div>`;
+    const act = $('#symList .qo-item.active');
+    if (act) act.scrollIntoView({ block: 'nearest' });
+}
+
+function pickSymbol(i) {
+    const it = symbolView.list[i];
+    if (!it) return;
+    $('#symbolDialog').close();
+    gotoInEditor(state.active, it.s.row + 1, it.s.col, 0);
+}
+
+function initSymbols() {
+    const input = $('#symInput');
+    input.addEventListener('input', () => { symbolView.idx = 0; renderSymbols(); });
+    input.addEventListener('keydown', (e) => {
+        const n = symbolView.list.length;
+        if (e.key === 'ArrowDown' && n) { e.preventDefault(); symbolView.idx = (symbolView.idx + 1) % n; renderSymbols(); }
+        else if (e.key === 'ArrowUp' && n) { e.preventDefault(); symbolView.idx = (symbolView.idx - 1 + n) % n; renderSymbols(); }
+        else if (e.key === 'Enter') { e.preventDefault(); pickSymbol(symbolView.idx); }
+    });
+    $('#symList').addEventListener('click', (e) => { const r = e.target.closest('.qo-item'); if (r) pickSymbol(+r.dataset.i); });
+}
+
+/** Comandi dell'editor (anche con il focus fuori da Ace), etichette dei tasti per Mac / Windows-Linux. */
+function initEditorTools() {
+    if (editor) {
+        editor.commands.addCommand({ name: 'formatDocument', bindKey: { win: 'Shift-Alt-F', mac: 'Shift-Alt-F' }, exec: () => { formatTab(tabFor(state.active)); } });
+        editor.commands.addCommand({ name: 'goToSymbol', bindKey: { win: 'Ctrl-Shift-O', mac: 'Command-Shift-O' }, exec: () => openSymbols() });
+        editor.commands.addCommand({ name: 'emmetExpand', bindKey: { win: 'Tab', mac: 'Tab' }, exec: (ed) => emmetExpand(ed) });
+        // Con la tendina dei suggerimenti aperta Tab sceglierebbe il suggerimento: un'abbreviazione con operatori
+        // (ul>li, .box, p*3…) ha la precedenza, la tendina si chiude
+        editor.container.addEventListener('keydown', (e) => {
+            if (e.key !== 'Tab' || e.shiftKey || e.altKey || e.metaKey || e.ctrlKey) return;
+            const popup = editor.completer && editor.completer.activated;
+            if (!popup) return;
+            const line = editor.session.getLine(editor.getCursorPosition().row).slice(0, editor.getCursorPosition().column);
+            if (!/[.#>+*^\[\]{}():$@!]\S*$/.test(line.trim().split(/\s+/).pop() || '')) return;
+            if (emmetExpand(editor)) { e.preventDefault(); e.stopPropagation(); editor.completer.detach(); }
+        }, true);
+        applyTheme();
+        initMinimap();
+    }
+    $('#formatBtn kbd').textContent = IS_MAC ? '⇧⌥F' : 'Shift+Alt+F';
+    $('#symbolsBtn kbd').textContent = IS_MAC ? '⇧⌘O' : 'Ctrl+Shift+O';
+    document.addEventListener('keydown', (e) => {
+        if ($$('dialog[open]').length) return;
+        const mod = e.metaKey || e.ctrlKey;
+        if (e.shiftKey && e.altKey && !mod && e.code === 'KeyF') { e.preventDefault(); formatTab(tabFor(state.active)); }
+        else if (mod && e.shiftKey && !e.altKey && e.code === 'KeyO') { e.preventDefault(); openSymbols(); }
+    });
+    initSymbols();
+}
+
+// ----------------------------------------------------------------------------
 // VAI AL FILE (⌘P / Ctrl+P): ricerca "fuzzy" sui percorsi, frecce + Invio
 // ----------------------------------------------------------------------------
 const quickOpen = { items: [], idx: 0, recent: loadGlobal('qorecent', []) };
@@ -3935,7 +4408,7 @@ function saveSearchOpts() { storeGlobal('search', search.opts); }
 /** Apre il pannello; con fromKeyboard il testo selezionato nell'editor diventa la ricerca. */
 function openSearch(fromKeyboard) {
     const q = $('#sfQuery');
-    if (fromKeyboard && editor && state.active && !$('#editor').hidden) {
+    if (fromKeyboard && editor && state.active && !$('#editorWrap').hidden) {
         const sel = editor.getSelectedText();
         if (sel && !sel.includes('\n') && sel.length < 200) q.value = sel;
     }

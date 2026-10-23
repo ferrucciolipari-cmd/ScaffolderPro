@@ -15,7 +15,7 @@ function th(string $key, array $p = []): string { return t($key, $p); }
 function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><use href="#i-' . $name . '"/></svg>'; }
 ?>
 <!DOCTYPE html>
-<html lang="<?= h(uiLang()) ?>">
+<html lang="<?= h(uiLang()) ?>" data-theme="<?= h($config['theme']) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -68,6 +68,9 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="13" rx="5"/><path d="M12 11v9M9 4.5l1.5 2.5M15 4.5 13.5 7M3.5 13H7M17 13h3.5M4.5 8.5 7.5 10M19.5 8.5 16.5 10M4.5 18.5l3-1.5M19.5 18.5l-3-1.5"/></symbol>
         <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
         <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+        <symbol id="i-format" viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></symbol>
+        <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+        <symbol id="i-minimap" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M14.5 3.5v17"/><path d="M6.5 8h5M6.5 11h4M6.5 14h5"/></symbol>
         <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
         <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
         <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -228,7 +231,10 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
             <div id="fileNotice" class="notice error" hidden></div>
 
             <div class="workspace-grid" id="workspaceGrid">
-                <div id="editor" hidden></div>
+                <div class="editor-wrap" id="editorWrap" hidden>
+                    <div id="editor"></div>
+                    <canvas id="minimap" title="<?= tx('ed.minimap') ?>"></canvas>
+                </div>
                 <div id="imageView" class="image-view" hidden>
                     <img id="imageEl" alt="">
                     <div class="image-meta muted" id="imageMeta"></div>
@@ -424,6 +430,10 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 
 <!-- Menu ☰ della barra dell'editor: azioni sul file aperto -->
 <div id="editorMenu" class="ctx-menu dropdown" role="menu" hidden>
+    <button type="button" class="ctx-item" data-ed="format" id="formatBtn" role="menuitem"><?= ic('format') ?><span><?= tx('ed.format') ?></span><kbd>⇧⌥F</kbd></button>
+    <button type="button" class="ctx-item" data-ed="symbols" id="symbolsBtn" role="menuitem"><?= ic('list') ?><span><?= tx('ed.symbols') ?></span><kbd>⇧⌘O</kbd></button>
+    <button type="button" class="ctx-item" data-ed="minimap" id="minimapBtn" role="menuitemcheckbox" aria-checked="false"><?= ic('minimap') ?><span><?= tx('ed.minimap') ?></span><span class="ctx-check"><?= ic('check') ?></span></button>
+    <div class="ctx-sep"></div>
     <button type="button" class="ctx-item" data-ed="preview" id="previewBtn" role="menuitem"><?= ic('external') ?><span><?= tx('ed.preview_window') ?></span></button>
     <button type="button" class="ctx-item" data-ed="split" id="splitBtn" role="menuitemcheckbox" aria-checked="false"><?= ic('split') ?><span><?= tx('ed.preview_split') ?></span><span class="ctx-check"><?= ic('check') ?></span></button>
     <button type="button" class="ctx-item" data-ed="download" id="downloadBtn" role="menuitem"><?= ic('download') ?><span><?= tx('ed.download_file') ?></span></button>
@@ -494,6 +504,12 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                     <label><?= tx('set.font_size') ?> <input type="number" name="editor_font" min="10" max="32"></label>
                     <label class="check"><input type="checkbox" name="editor_wrap"> <?= tx('set.wrap') ?></label>
                     <label class="check"><input type="checkbox" name="show_right"> <?= tx('set.show_right') ?></label>
+                <label><?= tx('set.theme') ?>
+                    <select name="theme"><option value="dark"><?= tx('set.theme_dark') ?></option><option value="light"><?= tx('set.theme_light') ?></option><option value="auto"><?= tx('set.theme_auto') ?></option></select>
+                </label>
+                <label class="check"><input type="checkbox" name="minimap"> <?= tx('set.minimap') ?></label>
+                <label class="check"><input type="checkbox" name="format_on_save"> <?= tx('set.format_on_save') ?></label>
+                <label class="check"><input type="checkbox" name="emmet"> <?= tx('set.emmet') ?></label>
                     <button type="button" class="sbtn" id="resetLayoutBtn"><?= tx('set.reset_columns') ?></button>
                 </fieldset>
                 <fieldset>
@@ -613,6 +629,13 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 <dialog id="quickOpenDialog" class="modal small quick-open">
     <div class="qo-input"><?= ic('search') ?><input type="text" id="qoInput" placeholder="<?= tx('qo.placeholder') ?>" autocomplete="off" spellcheck="false"></div>
     <div id="qoList" class="qo-list"></div>
+    <div class="qo-foot muted"><span><kbd>↑</kbd><kbd>↓</kbd> <?= tx('qo.move') ?></span><span><kbd>↵</kbd> <?= tx('qo.open') ?></span><span><kbd>Esc</kbd> <?= tx('common.close') ?></span></div>
+</dialog>
+
+<!-- Vai al simbolo (⇧⌘O / Ctrl+Shift+O): funzioni, classi, selettori, titoli del file aperto -->
+<dialog id="symbolDialog" class="modal small quick-open">
+    <div class="qo-input"><?= ic('list') ?><input type="text" id="symInput" placeholder="<?= tx('sym.placeholder') ?>" autocomplete="off" spellcheck="false"></div>
+    <div id="symList" class="qo-list"></div>
     <div class="qo-foot muted"><span><kbd>↑</kbd><kbd>↓</kbd> <?= tx('qo.move') ?></span><span><kbd>↵</kbd> <?= tx('qo.open') ?></span><span><kbd>Esc</kbd> <?= tx('common.close') ?></span></div>
 </dialog>
 
