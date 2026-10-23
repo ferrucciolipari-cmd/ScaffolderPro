@@ -33,7 +33,7 @@ No package installations, no build: just copy the folder and open it in the brow
 
 1. **Copy the folder** into your web space, next to the projects you want to manage:
    ```bash
-   git clone https://github.com/ferrucciolipari-cmd/TreeForge.git scaffolder-pro
+   git clone https://github.com/ferrucciolipari-cmd/ScaffolderPro.git scaffolder-pro
    ```
    or download the ZIP, extract it and upload it via FTP (e.g. in `htdocs/scaffolder-pro/` or `httpdocs/scaffolder-pro/`).
 2. **Open in the browser** `http://localhost/scaffolder-pro/` (or `https://yourdomain.com/scaffolder-pro/`).
