@@ -280,6 +280,43 @@ r = me.get('security')
 check('sicurezza senza password: disattivata', r.get('ok') and r.get('auth') is False, r)
 
 # ---------------------------------------------------------------------------
+section('Configurazioni (database, GitHub, MCP) e Database Manager')
+env = {'db_host': '127.0.0.1', 'db_port': '3399', 'db_user': 'sp', 'db_pass': 'supersegreta', 'db_name': 'demo',
+       'github_user': 'octo', 'github_token': 'ghp_abcdefghijklmnop1234',
+       'mcp': [{'name': 'docs', 'url': 'https://mcp.example.com/sse', 'key': 'mcp-key-9999'}]}
+r = me.post({'action': 'save_env', 'env': json.dumps(env)})
+c = r.get('config', {})
+check('configurazioni salvate', r.get('ok') and c.get('db_host') == '127.0.0.1' and c.get('db_port') == '3399' and c.get('github_user') == 'octo', r)
+check('password, token e chiavi MCP non tornano al browser',
+      'db_pass' not in c and 'github_token' not in c and 'mcp_keys' not in c and 'supersegreta' not in json.dumps(r) and 'mcp-key-9999' not in json.dumps(r), r)
+check('stato dei segreti: presenza e ultimi 4 caratteri', c.get('has_db_pass') is True and c.get('github_token_hint') == '••••1234'
+      and c.get('mcp') == [{'name': 'docs', 'url': 'https://mcp.example.com/sse', 'has_key': True, 'key_hint': '••••9999'}], c)
+st, b = me.req(BASE + 'index.php')
+check('index.php non contiene i segreti', b'supersegreta' not in b and b'ghp_abcdefghijklmnop1234' not in b and b'mcp-key-9999' not in b, st)
+check('3 schede e iframe di Adminer nella pagina', all(x in b for x in (b'data-tab="generator"', b'data-tab="config"', b'data-tab="database"', b'id="dbmFrame"', b'data-src="adminer/"')), st)
+r = me.post({'action': 'save_env', 'env': json.dumps({'db_host': 'localhost', 'db_user': 'root2'})})
+cfg = json.load(open(os.path.join(WWW, 'scaffolder-pro', 'data', 'config.json')))
+check('password e token restano se non ne arrivano di nuovi', r.get('ok') and cfg['db_pass'] == 'supersegreta' and cfg['github_token'] == 'ghp_abcdefghijklmnop1234'
+      and cfg['mcp_keys'][0]['key'] == 'mcp-key-9999', cfg)
+r = me.post({'action': 'save_env', 'env': json.dumps({'mcp': [{'name': 'docs2', 'orig': 'docs', 'url': 'https://mcp.example.com/sse', 'key': ''}]})})
+cfg = json.load(open(os.path.join(WWW, 'scaffolder-pro', 'data', 'config.json')))
+check('server MCP rinominato: la chiave salvata si mantiene', r.get('ok') and cfg['mcp_keys'][0]['name'] == 'docs2' and cfg['mcp_keys'][0]['key'] == 'mcp-key-9999', cfg)
+check('porta non valida rifiutata', not me.post({'action': 'save_env', 'env': json.dumps({'db_port': '99999'})}).get('ok'))
+check('nome MCP non valido rifiutato', not me.post({'action': 'save_env', 'env': json.dumps({'mcp': [{'name': 'a b', 'url': ''}]})}).get('ok'))
+check('indirizzo MCP non valido rifiutato', not me.post({'action': 'save_env', 'env': json.dumps({'mcp': [{'name': 'ok', 'url': 'ftp://x'}]})}).get('ok'))
+r = me.post({'action': 'test_db'})
+check('prova connessione MySQL: errore chiaro se non raggiungibile', not r.get('ok') and r.get('error'), r)
+r = me.post({'action': 'save_env', 'env': json.dumps({'remove_db_pass': True, 'remove_github_token': True})})
+cfg = json.load(open(os.path.join(WWW, 'scaffolder-pro', 'data', 'config.json')))
+check('password e token rimossi su richiesta', r.get('ok') and cfg['db_pass'] == '' and cfg['github_token'] == '' and r['config']['has_db_pass'] is False, cfg)
+check('prova GitHub senza token: errore', not me.post({'action': 'test_github'}).get('ok'))
+st, b = me.req(BASE + 'adminer/')
+check('Adminer: con MySQL irraggiungibile mostra il rimando alle Configurazioni (non il modulo di login)',
+      b'Cannot connect to MySQL' in b and b'auth[password]' not in b and b'../index.php#config' in b, (st, b[:300]))
+ht = open(os.path.join(WWW, 'scaffolder-pro', 'adminer', '.htaccess')).read()
+check('Adminer: adminer.php bloccato dal web (.htaccess)', '<Files "adminer.php">' in ht and 'Require all denied' in ht, ht)
+
+# ---------------------------------------------------------------------------
 section('Password, login perpetuo, uscita')
 r = me.post({'action': 'setup_auth', 'user': 'admin', 'pass': 'short'})
 check('password troppo corta rifiutata', not r.get('ok'), r)

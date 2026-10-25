@@ -479,6 +479,15 @@ function configDefaults(): array {
         'minimap'       => true,    // minimappa a destra dell'editor
         'format_on_save' => false,  // formatta il documento (Prettier) prima di salvarlo
         'emmet'         => true,    // abbreviazioni Emmet con Tab in HTML/PHP/CSS
+        // Scheda Configurazioni: ambiente di lavoro (la scheda Database Manager entra in MySQL con questi dati)
+        'db_host'       => 'localhost',
+        'db_port'       => '',
+        'db_user'       => 'root',
+        'db_pass'       => '',
+        'db_name'       => '',      // database aperto all'avvio di Adminer (vuoto = elenco dei database)
+        'github_user'   => '',
+        'github_token'  => '',
+        'mcp_keys'      => [],      // [{name, url, key}]: chiavi dei server MCP
     ];
 }
 
@@ -503,10 +512,28 @@ function saveConfig(array $cfg): bool {
 function publicConfig(): array {
     $cfg = loadConfig();
     $key = (string)$cfg['api_key'];
-    unset($cfg['api_key']);
+    $dbPass = (string)$cfg['db_pass'];
+    $ghToken = (string)$cfg['github_token'];
+    $mcp = is_array($cfg['mcp_keys']) ? $cfg['mcp_keys'] : [];
+    unset($cfg['api_key'], $cfg['db_pass'], $cfg['github_token'], $cfg['mcp_keys']);
     $cfg['has_api_key'] = $key !== '';
     $cfg['api_key_hint'] = $key !== '' ? '••••' . substr($key, -4) : '';
+    $cfg['has_db_pass'] = $dbPass !== '';
+    $cfg['has_github_token'] = $ghToken !== '';
+    $cfg['github_token_hint'] = $ghToken !== '' ? '••••' . substr($ghToken, -4) : '';
+    // Le chiavi dei server MCP, come la API key, non lasciano mai il server: al browser arrivano solo nome, indirizzo e ultimi 4 caratteri
+    $cfg['mcp'] = array_values(array_map(function ($m) {
+        $k = (string)($m['key'] ?? '');
+        return ['name' => (string)($m['name'] ?? ''), 'url' => (string)($m['url'] ?? ''), 'has_key' => $k !== '', 'key_hint' => $k !== '' ? '••••' . substr($k, -4) : ''];
+    }, array_filter($mcp, 'is_array')));
     return $cfg;
+}
+
+/** Indirizzo del server MySQL per Adminer e mysqli: "host" oppure "host:porta". */
+function dbServerString(array $cfg): string {
+    $host = trim((string)$cfg['db_host']) ?: 'localhost';
+    $port = trim((string)$cfg['db_port']);
+    return $port !== '' ? $host . ':' . $port : $host;
 }
 
 function serverLimits(): array {

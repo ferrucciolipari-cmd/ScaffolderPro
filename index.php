@@ -77,12 +77,21 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <symbol id="i-minimap" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M14.5 3.5v17"/><path d="M6.5 8h5M6.5 11h4M6.5 14h5"/></symbol>
         <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
         <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+        <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3"/><circle cx="15" cy="7" r="2"/><path d="M4 17h3M11 17h9"/><circle cx="9" cy="17" r="2"/></symbol>
+        <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
         <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
     </defs>
 </svg>
 
 <header>
     <div class="brand"><?= ic('bolt') ?> <span class="brand-name"><span class="b-main">Scaffolder</span> <span class="b-pro">Pro</span></span></div>
+
+    <!-- Navigazione principale: un solo pannello visibile alla volta (vedi initMainTabs in app.js) -->
+    <nav class="main-tabs" id="mainTabs" role="tablist" aria-label="<?= tx('tab.nav') ?>">
+        <button type="button" role="tab" id="tab-generator" class="main-tab" data-tab="generator" aria-controls="panel-generator" aria-selected="true"><?= ic('bolt') ?><span><?= tx('tab.generator') ?></span></button>
+        <button type="button" role="tab" id="tab-config" class="main-tab" data-tab="config" aria-controls="panel-config" aria-selected="false" tabindex="-1"><?= ic('sliders') ?><span><?= tx('tab.config') ?></span></button>
+        <button type="button" role="tab" id="tab-database" class="main-tab" data-tab="database" aria-controls="panel-database" aria-selected="false" tabindex="-1"><?= ic('database') ?><span><?= tx('tab.database') ?></span></button>
+    </nav>
 
     <div class="toolbar">
         <!-- Selettore della root: cartelle dello spazio web con ricerca e permessi (sotto, un velo che lo chiude) -->
@@ -132,6 +141,8 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
 <?php endif; ?>
 <div id="permBanner" class="notice error" hidden></div>
 
+<div class="tab-panels" id="tabPanels">
+<section class="tab-panel" id="panel-generator" data-panel="generator" role="tabpanel" aria-labelledby="tab-generator">
 <div class="layout" id="layout">
 
     <!-- ============ COLONNA SINISTRA: EXPLORER ============ -->
@@ -413,6 +424,68 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
             <div id="trashList" class="card-scroll"></div>
         </div>
     </aside>
+</div>
+</section>
+
+<!-- ============ TAB 2: CONFIGURAZIONI ============ -->
+<section class="tab-panel" id="panel-config" data-panel="config" role="tabpanel" aria-labelledby="tab-config" hidden>
+    <div class="config-scroll">
+    <form id="configForm" class="config-form" autocomplete="off">
+        <div class="config-head">
+            <h2><?= ic('sliders') ?> <?= tx('env.title') ?></h2>
+            <p class="muted"><?= tx('env.intro') ?></p>
+        </div>
+        <div class="settings-grid">
+            <fieldset>
+                <legend><?= ic('database') ?> <?= tx('env.db') ?></legend>
+                <p class="muted"><?= tx('env.db_hint') ?></p>
+                <div class="env-row">
+                    <label><?= tx('env.db_host') ?> <input type="text" name="db_host" placeholder="localhost" spellcheck="false"></label>
+                    <label class="env-port"><?= tx('env.db_port') ?> <input type="text" name="db_port" placeholder="3306" inputmode="numeric" spellcheck="false"></label>
+                </div>
+                <label><?= tx('env.db_user') ?> <input type="text" name="db_user" placeholder="root" autocomplete="off" spellcheck="false"></label>
+                <label><?= tx('env.db_pass') ?> <input type="password" name="db_pass" autocomplete="new-password"></label>
+                <div class="muted" data-state="db_pass"></div>
+                <label class="check"><input type="checkbox" name="remove_db_pass"> <?= tx('env.remove_saved') ?></label>
+                <label><?= tx('env.db_name') ?> <input type="text" name="db_name" placeholder="<?= tx('env.db_name_ph') ?>" spellcheck="false"></label>
+                <div class="hrow"><button type="button" class="sbtn" id="testDbBtn"><?= ic('database') ?> <?= tx('env.db_test') ?></button><span class="muted env-result" id="testDbMsg"></span></div>
+            </fieldset>
+
+            <fieldset>
+                <legend><?= ic('external') ?> <?= tx('env.github') ?></legend>
+                <p class="muted"><?= tx('env.github_hint') ?></p>
+                <label><?= tx('env.gh_user') ?> <input type="text" name="github_user" spellcheck="false"></label>
+                <label><?= tx('env.gh_token') ?> <input type="password" name="github_token" autocomplete="new-password" placeholder="ghp_… / github_pat_…"></label>
+                <div class="muted" data-state="github_token"></div>
+                <label class="check"><input type="checkbox" name="remove_github_token"> <?= tx('env.remove_saved') ?></label>
+                <div class="hrow"><button type="button" class="sbtn" id="testGhBtn"><?= ic('check') ?> <?= tx('env.gh_test') ?></button><span class="muted env-result" id="testGhMsg"></span></div>
+            </fieldset>
+
+            <fieldset class="wide">
+                <legend><?= ic('terminal') ?> <?= tx('env.mcp') ?></legend>
+                <p class="muted"><?= tx('env.mcp_hint') ?></p>
+                <div id="mcpList" class="mcp-list"></div>
+                <div class="hrow"><button type="button" class="sbtn" id="mcpAdd"><?= ic('plus') ?> <?= tx('env.mcp_add') ?></button></div>
+            </fieldset>
+
+            <fieldset class="wide">
+                <legend><?= ic('format') ?> <?= tx('env.gen') ?></legend>
+                <p class="muted"><?= tx('env.gen_hint') ?></p>
+                <div class="hrow"><button type="button" class="sbtn" id="openSettingsFromCfg"><?= ic('user') ?> <?= tx('env.gen_open') ?></button></div>
+            </fieldset>
+        </div>
+        <div class="hrow config-foot"><span class="muted" id="configMsg"></span><span class="spacer"></span><button type="submit" class="pbtn"><?= ic('save') ?> <?= tx('env.save') ?></button></div>
+    </form>
+    </div>
+</section>
+
+<!-- ============ TAB 3: DATABASE MANAGER (Adminer in un iframe a tutta area) ============ -->
+<section class="tab-panel" id="panel-database" data-panel="database" role="tabpanel" aria-labelledby="tab-database" hidden>
+    <div class="dbm-frame-wrap">
+        <div class="dbm-loading muted" id="dbmLoading"><?= tx('dbm.loading') ?></div>
+        <iframe id="dbmFrame" title="<?= tx('dbm.title') ?>" data-src="adminer/" referrerpolicy="same-origin"></iframe>
+    </div>
+</section>
 </div>
 
 <!-- "Scarica tutto (ZIP)": risponde direttamente con il file -->
