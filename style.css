@@ -1225,7 +1225,7 @@ dialog.modal.large { width: min(1100px, 94vw); height: 86vh; }
     border-top: 1px solid var(--c-333333);
 }
 #claudeDialog .claude-panel > .hrow:last-child .pbtn { padding: 7px 18px; }
-dialog::backdrop { background: var(--c-000000-42); }
+dialog::backdrop { background: var(--c-000000-60); backdrop-filter: blur(1.5px); }
 
 #versionContent {
     margin: 0;
@@ -1463,6 +1463,14 @@ body { height: 100vh; overflow: hidden; }
     overflow: hidden;
 }
 .editor-card .notice { margin: 8px 12px 0; }
+/* Avviso del file: fisso in basso, galleggia sopra l'editor (non ne cambia l'altezza) */
+.editor-card { position: relative; }
+.editor-card > #fileNotice {
+    position: absolute; left: 12px; right: 12px; bottom: 12px; margin: 0; z-index: 30;
+    background-color: var(--panel); box-shadow: 0 4px 14px var(--c-000000-45);
+}
+.editor-card > #fileNotice.error { background-image: linear-gradient(var(--c-f44747-10), var(--c-f44747-10)); }
+.editor-card > #fileNotice.ok { background-image: linear-gradient(var(--c-2ea043-12), var(--c-2ea043-12)); }
 .workspace-grid {
     flex: 1;
     min-height: 0;

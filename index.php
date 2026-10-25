@@ -244,8 +244,6 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                 </div>
             </div>
 
-            <div id="fileNotice" class="notice error" hidden></div>
-
             <div class="workspace-grid" id="workspaceGrid">
                 <div class="editor-wrap" id="editorWrap" hidden>
                     <div id="editor"></div>
@@ -326,6 +324,9 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
                     </div>
                 </div>
             </div>
+
+            <!-- Avvisi del file (errori, sintassi PHP…): in basso, sopra l'editor, senza spingere l'area di lavoro -->
+            <div id="fileNotice" class="notice error" hidden></div>
         </div>
     </main>
 
