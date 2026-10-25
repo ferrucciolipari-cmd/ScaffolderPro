@@ -9,7 +9,7 @@ I test sono in ordine: quelli che attivano la password e il blocco dei tentativi
 """
 import base64, hashlib, hmac, http.cookiejar, io, json, os, re, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, uuid, zipfile, zlib
 
-BASE, WWW, PHP, SITE_URL = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]   # SITE_URL: il sito di prova su un altro server
+BASE, WWW, PHP, SITE_URL, GH_URL = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]   # SITE_URL: il sito di prova su un altro server
 APP = os.path.join(WWW, 'scaffolder-pro')
 SITE = os.path.join(WWW, 'site')
 fails = 0
@@ -315,6 +315,42 @@ check('Adminer: con MySQL irraggiungibile mostra il rimando alle Configurazioni 
       b'Cannot connect to MySQL' in b and b'auth[password]' not in b and b'../index.php#config' in b, (st, b[:300]))
 ht = open(os.path.join(WWW, 'scaffolder-pro', 'adminer', '.htaccess')).read()
 check('Adminer: adminer.php bloccato dal web (.htaccess)', '<Files "adminer.php">' in ht and 'Require all denied' in ht, ht)
+
+# ---------------------------------------------------------------------------
+section('Pubblica su GitHub (finto server)')
+def gh_state():
+    return json.load(urllib.request.urlopen(GH_URL + '__state'))
+def gh_files(st, repo, branch):
+    c = st['commits'][st['repos'][repo]['refs'][branch]]
+    return sorted(e['path'] for e in st['trees'][c['tree']])
+open(os.path.join(SITE, '.env'), 'w').write('SECRET=1\n')
+open(os.path.join(SITE, 'big.bin'), 'wb').write(b'\0' * (11 * 1048576))
+r = me.post({'action': 'github_plan'})
+check('anteprima: token mancante', r.get('ok') and r['has_token'] is False and r['name'] == 'site', r)
+r = me.post({'action': 'github_publish', 'repo': 'site'})
+check('senza token: errore', not r.get('ok'), r)
+me.post({'action': 'save_env', 'env': json.dumps({'github_token': 'ghp_testtoken1234'})})
+r = me.post({'action': 'github_plan'})
+check('anteprima: .env e file oltre 10 MB saltati, il resto contato', r.get('ok') and r['has_token'] and r['skipped_count'] >= 2
+      and '.env' in r['skipped'] and 'big.bin' in r['skipped'] and r['files'] >= 4 and not r['too_many'], r)
+check('nome repository non valido rifiutato', not me.post({'action': 'github_publish', 'repo': 'a b/c'}).get('ok'))
+check('branch non valido rifiutato', not me.post({'action': 'github_publish', 'repo': 'site', 'branch': 'a b'}).get('ok'))
+r = me.post({'action': 'github_publish', 'repo': 'site', 'private': '1', 'message': 'First'})
+check('repository creato e pubblicato', r.get('ok') and r['created'] is True and r['branch'] == 'main' and r['files'] == me.post({'action': 'github_plan'})['files']
+      and r['url'] == 'https://github.com/octo/site', r)
+st = gh_state()
+files = gh_files(st, 'octo/site', 'main')
+check('repo privato, nessun segreto né file grandi inviati', st['repos']['octo/site']['private'] is True and '.env' not in files and 'big.bin' not in files
+      and 'inc/config.php' in files and 'index.php' in files, files)
+check('commit con messaggio e il commit iniziale come genitore', any(c.get('message') == 'First' and c['parents'] == ['c0'] for c in st['commits'].values()), st['commits'])
+open(os.path.join(SITE, 'inc', 'extra.php'), 'w').write('<?php // nuovo\n')
+r = me.post({'action': 'github_publish', 'repo': 'site', 'message': 'Second'})
+st = gh_state()
+check('secondo invio: repository esistente, nuovo commit con nuovo file', r.get('ok') and r['created'] is False and 'inc/extra.php' in gh_files(st, 'octo/site', 'main'), r)
+r = me.post({'action': 'github_publish', 'repo': 'site', 'branch': 'dev', 'message': 'On dev'})
+check('branch nuovo creato dal predefinito', r.get('ok') and r['branch'] == 'dev' and 'dev' in gh_state()['repos']['octo/site']['refs'], r)
+os.remove(os.path.join(SITE, 'inc', 'extra.php')); os.remove(os.path.join(SITE, '.env')); os.remove(os.path.join(SITE, 'big.bin'))
+me.post({'action': 'save_env', 'env': json.dumps({'remove_github_token': True})})
 
 # ---------------------------------------------------------------------------
 section('Password, login perpetuo, uscita')

@@ -6,6 +6,7 @@ No package installations, no build: just copy the folder and open it in the brow
 ## ✨ Features
 
 - **3 tabs in the header** (no page reload): **Generator** (the editor described below), **Configurations** (MySQL host/port/user/password, GitHub token, MCP server keys: secrets stay on the server in `data/config.json`, the browser only sees the last 4 characters) and **Database Manager** ([Adminer](https://www.adminer.org/) full-screen in an `<iframe>`, signed in automatically to MySQL with the data of the Configurations tab, themed like the rest of the app).
+- **Publish to GitHub** (Explorer ☰ menu): sends the files of the working root to a repository as a single commit through the GitHub API (no `git` needed), using the token saved in Configurations. Creates the repository if missing; secrets (`.env`, `.htpasswd`), databases, files over 10 MB and the excluded folders are never sent.
 - **Explorer** with multi-selection, drag & drop (including from the computer), right-click menu, rename, duplicate (⌘D), delete with trash bin.
 - **Go to file** (⌘P / Ctrl+P): fuzzy search on all the file paths of the root.
 - **Go to line** (⌃G / Ctrl+G): type `120` or `120:5` (line:column). A button next to the zoom switches word wrap on and off.

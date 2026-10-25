@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initLogout();
     initMenuOverlay();
     initModalOverlay();
+    initGithub();
     initSecurity();
     initConfigPanel();
     initMainTabs();
@@ -708,6 +709,7 @@ function initExplorer() {
             case 'zip': state.selected.size ? zipItems([...state.selected]) : toast(L('js.select_to_zip'), 'warn'); break;
             case 'refresh': refreshTree().then(() => toast(L('js.explorer_refreshed'))); break;
             case 'collapse': state.openFolders.clear(); store('open', []); renderTree(); break;
+            case 'github': openGithubDialog(); break;
             case 'quick-open': openQuickOpen(); break;
         }
     }));
@@ -2372,6 +2374,52 @@ function initConfigPanel() {
         save().then(ok => { if (ok) toast(L('env.saved')); });
     });
     fill();
+}
+
+// ----------------------------------------------------------------------------
+// PUBBLICA SU GITHUB: la cartella di lavoro diventa un commit nel repository scelto (token dalla scheda Configurazioni)
+// ----------------------------------------------------------------------------
+function openGithubDialog() {
+    const form = $('#githubForm');
+    $('#ghDone').hidden = true;
+    $('#ghMsg').textContent = '';
+    $('#ghSummary').textContent = '';
+    form.message.value = '';
+    $('#ghPublish').disabled = true;
+    showModal($('#githubDialog'));
+    apiPost({ action: 'github_plan' }).then(r => {
+        if (!r.ok) { $('#ghMsg').textContent = r.error; return; }
+        form.repo.value = r.name;
+        $('#ghNoToken').hidden = r.has_token;
+        $('#ghOwner').textContent = r.owner ? L('gh.owner_line', { owner: r.owner }) : '';
+        $('#ghSummary').innerHTML = esc(L('gh.summary', { files: r.files, size: humanSize(r.bytes) }))
+            + (r.skipped_count ? '<br><span class="muted">' + esc(L('gh.skipped', { n: r.skipped_count })) + '</span>' : '')
+            + (r.too_many ? '<br><b>' + esc(L('gh.too_big', { files: 1500, mb: 80 })) + '</b>' : '');
+        $('#ghPublish').disabled = !r.has_token || r.too_many || !r.files;
+    }).catch(err => { $('#ghMsg').textContent = L('js.network_error') + ': ' + err; });
+}
+
+function initGithub() {
+    const form = $('#githubForm');
+    $('#ghOpenConfig').addEventListener('click', () => { $('#githubDialog').close(); location.hash = '#config'; });
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const btn = $('#ghPublish');
+        btn.disabled = true;
+        $('#ghDone').hidden = true;
+        $('#ghMsg').textContent = L('gh.publishing');
+        apiPost({ action: 'github_publish', repo: form.repo.value, private: form.private.value, branch: form.branch.value, message: form.message.value })
+            .then(r => {
+                if (!r.ok) { $('#ghMsg').textContent = r.error; toast(r.error, 'error'); return; }
+                $('#ghMsg').textContent = '';
+                const done = $('#ghDone');
+                done.innerHTML = esc(L('gh.done', { files: r.files, branch: r.branch, commit: r.commit })) + ' <a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(L('gh.open_repo')) + '</a>';
+                done.hidden = false;
+                refreshSide();
+            })
+            .catch(err => { $('#ghMsg').textContent = L('js.network_error') + ': ' + err; })
+            .finally(() => { btn.disabled = false; });
+    });
 }
 
 // Velo scuro sotto ogni finestra modale (<dialog>) aperta, piccola o grande: visibile finché almeno una è aperta.

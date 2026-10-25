@@ -105,11 +105,15 @@ for b in "${BINS[@]}"; do
     printf '<?php\n$a = 1;\n' > "$W/site/inc/config.php"
     printf '<?php http_response_code(302); header("Location: http://169.254.169.254/latest/meta-data/");\n' > "$W/site/redir.php"
     printf '<?php echo json_encode(["ok"=>1]);\n' > "$W/site/api.php"
-    FP=$(free_port); AP=$(free_port); SP=$(free_port)
+    FP=$(free_port); AP=$(free_port); SP=$(free_port); GP=$(free_port)
     mkdir -p "$T/fake" && cp "$ROOT/tests/fake_anthropic.php" "$T/fake/index.php"
+    mkdir -p "$T/fakegh" && cp "$ROOT/tests/fake_github.php" "$T/fakegh/index.php"
     sed -i.bak "s#const ANTHROPIC_API_URL  = 'https://api.anthropic.com/v1/messages';#const ANTHROPIC_API_URL  = 'http://127.0.0.1:$FP/index.php';#" "$W/scaffolder-pro/core.php"
+    sed -i.bak "s#const GITHUB_API_URL = 'https://api.github.com';#const GITHUB_API_URL = 'http://127.0.0.1:$GP';#" "$W/scaffolder-pro/core.php"
     "$b" -S "127.0.0.1:$FP" -t "$T/fake" >/dev/null 2>&1 &
     FPID=$!
+    "$b" -S "127.0.0.1:$GP" "$T/fakegh/index.php" >/dev/null 2>&1 &
+    GPID=$!
     PHP_CLI_SERVER_WORKERS=4 "$b" -d upload_max_filesize=2M -d post_max_size=3M -d max_execution_time=10 -d memory_limit=64M \
         -d log_errors=1 -d display_errors=0 -d error_log="$T/php_errors.log" -S "127.0.0.1:$AP" -t "$W" >/dev/null 2>&1 &
     APID=$!
@@ -123,8 +127,8 @@ for b in "${BINS[@]}"; do
         python3 -I "$ROOT/tests/big_upload_test.py" "http://127.0.0.1:$AP/scaffolder-pro/" "$W" "$BIG" || FAILED=1
         BIG=0   # una volta basta
     fi
-    python3 -I "$ROOT/tests/api_test.py" "http://127.0.0.1:$AP/scaffolder-pro/" "$W" "$b" "http://127.0.0.1:$SP/" || FAILED=1
-    kill $APID $FPID $SPID 2>/dev/null; wait $APID $FPID $SPID 2>/dev/null
+    python3 -I "$ROOT/tests/api_test.py" "http://127.0.0.1:$AP/scaffolder-pro/" "$W" "$b" "http://127.0.0.1:$SP/" "http://127.0.0.1:$GP/" || FAILED=1
+    kill $APID $FPID $SPID $GPID 2>/dev/null; wait $APID $FPID $SPID $GPID 2>/dev/null
     if [ -s "$T/php_errors.log" ]; then red "  FAIL avvisi o errori nel log di PHP:"; head -20 "$T/php_errors.log"; FAILED=1
     else green "  ok   nessun avviso nel log di PHP"; fi
     rm -rf "$T"

@@ -507,6 +507,7 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <button type="button" class="ctx-item" data-act="new-folder" role="menuitem"><?= ic('folder-plus') ?> <?= tx('menu.new_folder') ?></button>
     <button type="button" class="ctx-item" data-act="upload" role="menuitem"><?= ic('upload') ?> <?= tx('menu.upload') ?></button>
     <button type="button" class="ctx-item" data-act="zip" role="menuitem"><?= ic('archive') ?> <?= tx('menu.zip_selection') ?></button>
+    <button type="button" class="ctx-item" data-act="github" role="menuitem"><?= ic('external') ?> <?= tx('gh.menu') ?></button>
     <div class="ctx-sep"></div>
     <button type="button" class="ctx-item" data-act="quick-open" role="menuitem"><?= ic('search') ?> <?= tx('qo.title') ?> <kbd>⌘P</kbd></button>
     <button type="button" class="ctx-item" data-act="collapse" role="menuitem"><?= ic('collapse') ?> <?= tx('menu.collapse_all') ?></button>
@@ -660,6 +661,28 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
         <button type="button" class="sbtn" id="trCancel"><?= tx('tr.stop') ?></button>
         <button type="button" class="pbtn" id="trAck" hidden><?= ic('check') ?> <?= tx('tr.ack') ?></button>
     </div>
+</dialog>
+
+<!-- Pubblica la cartella di lavoro su GitHub (un commit, via API) -->
+<dialog id="githubDialog" class="modal small framed">
+    <form id="githubForm" method="dialog">
+        <div class="modal-head"><h3><?= ic('external') ?> <?= tx('gh.title') ?></h3><button type="button" class="icon-btn" data-close title="<?= tx('common.close') ?>"><?= ic('x') ?></button></div>
+        <div class="modal-body">
+            <p class="muted"><?= tx('gh.intro') ?></p>
+            <div class="notice error" id="ghNoToken" hidden><span><?= tx('gh.no_token') ?></span> <button type="button" class="sbtn" id="ghOpenConfig"><?= tx('gh.open_config') ?></button></div>
+            <div class="settings-grid one">
+                <label><?= tx('gh.repo') ?> <input type="text" name="repo" required maxlength="100" spellcheck="false" autocomplete="off"></label>
+                <div class="muted" id="ghOwner"></div>
+                <label><?= tx('gh.visibility') ?> <select name="private"><option value="1"><?= tx('gh.private') ?></option><option value="0"><?= tx('gh.public') ?></option></select></label>
+                <label><?= tx('gh.branch') ?> <input type="text" name="branch" maxlength="100" placeholder="<?= tx('gh.branch_ph') ?>" spellcheck="false" autocomplete="off"></label>
+                <label><?= tx('gh.message') ?> <input type="text" name="message" maxlength="500" autocomplete="off"></label>
+            </div>
+            <div class="gh-summary" id="ghSummary"></div>
+            <p class="muted"><?= tx('gh.warn') ?></p>
+            <div class="notice ok" id="ghDone" hidden></div>
+        </div>
+        <div class="hrow end modal-foot"><span class="muted" id="ghMsg"></span><button type="button" class="sbtn" data-close><?= tx('common.close') ?></button><button type="submit" class="pbtn" id="ghPublish"><?= ic('upload') ?> <?= tx('gh.publish') ?></button></div>
+    </form>
 </dialog>
 
 <!-- Importa una cURL incollata -->

@@ -529,6 +529,101 @@ function publicConfig(): array {
     return $cfg;
 }
 
+// ===================================================================
+// PUBBLICAZIONE SU GITHUB (API REST, senza il programma git)
+// ===================================================================
+
+const GH_MAX_FILES = 1500;
+const GH_MAX_FILE  = 10 * 1048576;     // un file più grande non viene inviato
+const GH_MAX_TOTAL = 80 * 1048576;
+/** Mai pubblicati: segreti e file di lavoro. */
+const GH_NEVER = ['.htpasswd', '.env', '.DS_Store'];
+
+const GITHUB_API_URL = 'https://api.github.com';   // i test lo puntano a un finto server (tests/fake_github.php)
+function ghBase(): string { return GITHUB_API_URL; }
+
+/** Chiamata all'API di GitHub con il token salvato. Restituisce [codice HTTP, JSON decodificato]. */
+function ghApi(string $method, string $path, ?array $body = null): array {
+    $ch = curl_init(ghBase() . $path);
+    curl_setopt_array($ch, ghCurlOpts($method, $body));
+    $out = curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+    if ($out === false) return [0, ['message' => $err ?: 'network error']];
+    return [$code, json_decode((string)$out, true) ?: []];
+}
+
+function ghCurlOpts(string $method, ?array $body): array {
+    $headers = ['Accept: application/vnd.github+json', 'User-Agent: ScaffolderPro', 'X-GitHub-Api-Version: 2022-11-28',
+                'Authorization: Bearer ' . loadConfig()['github_token']];
+    $o = [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 60, CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_CUSTOMREQUEST => $method];
+    if ($body !== null) { $o[CURLOPT_POSTFIELDS] = json_encode($body); $headers[] = 'Content-Type: application/json'; }
+    $o[CURLOPT_HTTPHEADER] = $headers;
+    return $o;
+}
+
+function ghError(array $j, int $code): string {
+    return (string)($j['message'] ?? ('HTTP ' . $code));
+}
+
+/** File della cartella da pubblicare: [percorso relativo => percorso assoluto] + elenco dei saltati. */
+function ghCollectFiles(string $absDir, array $skipNames): array {
+    global $selfDir;
+    $skip = array_merge(['.git'], $skipNames);
+    $files = []; $skipped = []; $total = 0;
+    $filter = new RecursiveCallbackFilterIterator(
+        new RecursiveDirectoryIterator($absDir, FilesystemIterator::SKIP_DOTS),
+        function ($cur) use ($skip, $selfDir) {
+            if (in_array($cur->getFilename(), $skip, true)) return false;
+            $real = $cur->getRealPath();
+            if ($real !== false && ($real === $selfDir || strpos($real . '/', $selfDir . '/') === 0)) return false;
+            return $cur->isReadable() && !$cur->isLink();
+        }
+    );
+    foreach (new RecursiveIteratorIterator($filter, RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD) as $f) {
+        if (!$f->isFile()) continue;
+        $rel = str_replace('\\', '/', substr($f->getPathname(), strlen($absDir) + 1));
+        $name = $f->getFilename();
+        if (in_array($name, GH_NEVER, true) || preg_match('/\.(sqlite|sqlite-wal|sqlite-shm)$/i', $name)) { $skipped[] = $rel; continue; }
+        $size = $f->getSize();
+        if ($size > GH_MAX_FILE) { $skipped[] = $rel; continue; }
+        $files[$rel] = $f->getPathname();
+        $total += $size;
+    }
+    ksort($files);
+    return ['files' => $files, 'skipped' => $skipped, 'bytes' => $total];
+}
+
+/** Carica i file come blob (a gruppi in parallelo) e restituisce le voci dell'albero Git. */
+function ghUploadBlobs(string $owner, string $repo, array $files): array {
+    $entries = []; $keys = array_keys($files); $i = 0; $n = count($keys);
+    while ($i < $n) {
+        $mh = curl_multi_init(); $handles = []; $bytes = 0;
+        while ($i < $n && count($handles) < 8 && ($bytes < 6 * 1048576 || !$handles)) {
+            $rel = $keys[$i++];
+            $data = (string)@file_get_contents($files[$rel]);
+            $bytes += strlen($data);
+            $ch = curl_init(ghBase() . "/repos/$owner/$repo/git/blobs");
+            curl_setopt_array($ch, ghCurlOpts('POST', ['content' => base64_encode($data), 'encoding' => 'base64']));
+            curl_multi_add_handle($mh, $ch);
+            $handles[$rel] = $ch;
+            $mode = is_executable($files[$rel]) ? '100755' : '100644';
+            $entries[$rel] = ['path' => $rel, 'mode' => $mode, 'type' => 'blob', 'sha' => null];
+        }
+        do { $st = curl_multi_exec($mh, $running); if ($running) curl_multi_select($mh, 1.0); } while ($running && $st === CURLM_OK);
+        foreach ($handles as $rel => $ch) {
+            $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $j = json_decode((string)curl_multi_getcontent($ch), true) ?: [];
+            curl_multi_remove_handle($mh, $ch); curl_close($ch);
+            if ($code !== 201 || empty($j['sha'])) return ['error' => t('gh.upload_failed', ['file' => $rel, 'error' => ghError($j, $code)])];
+            $entries[$rel]['sha'] = $j['sha'];
+        }
+        curl_multi_close($mh);
+    }
+    return ['entries' => array_values($entries)];
+}
+
 /** Indirizzo del server MySQL per Adminer e mysqli: "host" oppure "host:porta". */
 function dbServerString(array $cfg): string {
     $host = trim((string)$cfg['db_host']) ?: 'localhost';

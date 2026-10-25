@@ -2377,3 +2377,8 @@ body:not([data-tab="generator"]) #rootPicker { display: none; }
     .env-row .env-port { flex: 1; }
     .dbm-frame-wrap { height: calc(100vh - 110px); height: calc(100dvh - 110px); }
 }
+
+/* Pubblica su GitHub */
+.gh-summary { font-size: 12.5px; padding: 8px 0 2px; }
+#githubDialog .notice { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin: 8px 0; }
+#githubDialog .notice a { color: inherit; text-decoration: underline; }

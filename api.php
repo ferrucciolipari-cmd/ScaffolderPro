@@ -1031,7 +1031,7 @@ switch ($action) {
         $cfg = loadConfig();
         if ((string)$cfg['github_token'] === '') fail(t('env.gh_no_token'));
         if (!function_exists('curl_init')) fail(t('env.no_curl'));
-        $ch = curl_init('https://api.github.com/user');
+        $ch = curl_init(ghBase() . '/user');
         curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_HTTPHEADER => ['Accept: application/vnd.github+json', 'User-Agent: ScaffolderPro', 'Authorization: Bearer ' . $cfg['github_token']]]);
         $body = curl_exec($ch);
@@ -1042,6 +1042,77 @@ switch ($action) {
         $j = json_decode((string)$body, true);
         if ($code !== 200 || empty($j['login'])) fail(t('env.gh_failed', ['error' => (string)($j['message'] ?? ('HTTP ' . $code))]));
         jsonOut(['ok' => true, 'message' => t('env.gh_ok', ['user' => $j['login']])]);
+    }
+
+    // L3. PUBBLICAZIONE SU GITHUB: anteprima (quanti file, quali saltati) e invio come un unico commit
+    case 'github_plan': {
+        $cfg = loadConfig();
+        $plan = ghCollectFiles($rootDir, array_filter(array_map('trim', explode(',', (string)$cfg['backup_skip']))));
+        jsonOut(['ok' => true, 'has_token' => (string)$cfg['github_token'] !== '', 'owner' => (string)$cfg['github_user'],
+                 'name' => preg_replace('/[^A-Za-z0-9_.-]+/', '-', basename($rootDir)) ?: 'project',
+                 'files' => count($plan['files']), 'bytes' => $plan['bytes'], 'skipped' => array_slice($plan['skipped'], 0, 20), 'skipped_count' => count($plan['skipped']),
+                 'too_many' => count($plan['files']) > GH_MAX_FILES || $plan['bytes'] > GH_MAX_TOTAL]);
+    }
+
+    case 'github_publish': {
+        $cfg = loadConfig();
+        if ((string)$cfg['github_token'] === '') fail(t('env.gh_no_token'));
+        if (!function_exists('curl_init')) fail(t('env.no_curl'));
+        @set_time_limit(600);
+        $name = trim((string)($_POST['repo'] ?? ''));
+        if (!preg_match('/^[A-Za-z0-9_.-]{1,100}$/', $name) || $name === '.' || $name === '..') fail(t('gh.name_invalid'));
+        $private = ($_POST['private'] ?? '1') !== '0';
+        $branchIn = trim((string)($_POST['branch'] ?? ''));
+        if ($branchIn !== '' && !preg_match('#^[A-Za-z0-9_./-]{1,100}$#', $branchIn)) fail(t('gh.branch_invalid'));
+        $message = trim((string)($_POST['message'] ?? '')) ?: 'Update from Scaffolder Pro';
+        $message = mb_substr($message, 0, 500);
+
+        [$c, $me] = ghApi('GET', '/user');
+        if ($c !== 200 || empty($me['login'])) fail(t('env.gh_failed', ['error' => ghError($me, $c)]));
+        $owner = trim((string)$cfg['github_user']) ?: $me['login'];
+        if (!preg_match('/^[A-Za-z0-9-]{1,39}$/', $owner)) fail(t('gh.owner_invalid'));
+
+        $plan = ghCollectFiles($rootDir, array_filter(array_map('trim', explode(',', (string)$cfg['backup_skip']))));
+        if (!$plan['files']) fail(t('gh.no_files'));
+        if (count($plan['files']) > GH_MAX_FILES || $plan['bytes'] > GH_MAX_TOTAL) fail(t('gh.too_big', ['files' => GH_MAX_FILES, 'mb' => (int)(GH_MAX_TOTAL / 1048576)]));
+
+        // Repository: si usa quello esistente, altrimenti lo si crea (con un primo commit, perché l'API Git non scrive in un repository vuoto)
+        $created = false;
+        [$c, $repo] = ghApi('GET', "/repos/$owner/$name");
+        if ($c === 404) {
+            $body = ['name' => $name, 'private' => $private, 'auto_init' => true, 'description' => 'Created with Scaffolder Pro'];
+            [$c, $repo] = strcasecmp($owner, $me['login']) === 0 ? ghApi('POST', '/user/repos', $body) : ghApi('POST', "/orgs/$owner/repos", $body);
+            if ($c !== 201) fail(t('gh.create_failed', ['error' => ghError($repo, $c)]));
+            $created = true;
+        } elseif ($c !== 200) fail(t('gh.repo_failed', ['error' => ghError($repo, $c)]));
+        if (empty($repo['permissions']['push']) && !$created) fail(t('gh.no_push'));
+        $branch = $branchIn !== '' ? $branchIn : (string)($repo['default_branch'] ?? 'main');
+
+        // Branch: commit di partenza (se il branch non esiste si parte dal predefinito)
+        [$c, $ref] = ghApi('GET', "/repos/$owner/$name/git/ref/heads/" . $branch);
+        $isNewBranch = false;
+        if ($c === 404) {
+            [$c, $def] = ghApi('GET', "/repos/$owner/$name/git/ref/heads/" . ($repo['default_branch'] ?? 'main'));
+            if ($c !== 200) fail(t('gh.repo_failed', ['error' => ghError($def, $c)]));
+            $parent = $def['object']['sha'];
+            $isNewBranch = true;
+        } elseif ($c === 200) $parent = $ref['object']['sha'];
+        else fail(t('gh.repo_failed', ['error' => ghError($ref, $c)]));
+
+        $up = ghUploadBlobs($owner, $name, $plan['files']);
+        if (isset($up['error'])) fail($up['error']);
+        // Albero completo, senza base: il repository diventa identico alla cartella (i file tolti qui spariscono anche lì)
+        [$c, $tree] = ghApi('POST', "/repos/$owner/$name/git/trees", ['tree' => $up['entries']]);
+        if ($c !== 201) fail(t('gh.commit_failed', ['error' => ghError($tree, $c)]));
+        [$c, $commit] = ghApi('POST', "/repos/$owner/$name/git/commits", ['message' => $message, 'tree' => $tree['sha'], 'parents' => [$parent]]);
+        if ($c !== 201) fail(t('gh.commit_failed', ['error' => ghError($commit, $c)]));
+        [$c, $upd] = $isNewBranch
+            ? ghApi('POST', "/repos/$owner/$name/git/refs", ['ref' => 'refs/heads/' . $branch, 'sha' => $commit['sha']])
+            : ghApi('PATCH', "/repos/$owner/$name/git/refs/heads/" . $branch, ['sha' => $commit['sha']]);
+        if ($c !== 200 && $c !== 201) fail(t('gh.commit_failed', ['error' => ghError($upd, $c)]));
+        addLog('create', "GitHub ➔ $owner/$name@$branch (" . count($plan['files']) . ' files)');
+        jsonOut(['ok' => true, 'url' => (string)($repo['html_url'] ?? "https://github.com/$owner/$name"), 'commit' => substr($commit['sha'], 0, 7),
+                 'files' => count($plan['files']), 'created' => $created, 'branch' => $branch, 'skipped_count' => count($plan['skipped'])]);
     }
 
     // M. RESETTA TUTTO: impostazioni, database (versioni, cestino, registro, richieste API, root) e file
