@@ -158,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSetupAuth();
     initLogout();
     initMenuOverlay();
+    initModalOverlay();
     initSecurity();
     initConfigPanel();
     initMainTabs();
@@ -2371,6 +2372,17 @@ function initConfigPanel() {
         save().then(ok => { if (ok) toast(L('env.saved')); });
     });
     fill();
+}
+
+// Velo scuro sotto ogni finestra modale (<dialog>) aperta, piccola o grande: visibile finché almeno una è aperta.
+// Il dialog sta nello strato superiore del browser, quindi sopra il velo; il velo copre header, schede e iframe.
+function initModalOverlay() {
+    const overlay = $('#modalOverlay');
+    const dialogs = $$('dialog');
+    const sync = () => { overlay.hidden = !dialogs.some(d => d.open); };
+    const mo = new MutationObserver(sync);
+    dialogs.forEach(d => mo.observe(d, { attributes: true, attributeFilter: ['open'] }));
+    sync();
 }
 
 // Velo sotto i menu a comparsa: visibile finché uno dei menu è aperto. Ogni menu si chiude già con un clic fuori

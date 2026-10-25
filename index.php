@@ -495,6 +495,9 @@ function ic(string $name): string { return '<svg class="ic" aria-hidden="true"><
     <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
 </form>
 
+<!-- Velo scuro sotto ogni finestra modale aperta (un solo elemento, mostrato da initModalOverlay) -->
+<div class="modal-overlay" id="modalOverlay" hidden></div>
+
 <!-- Velo sotto i menu a comparsa (☰ dell'Explorer, tasto destro, ☰ dell'editor, errori PHP): un clic lo chiude -->
 <div class="menu-overlay" id="menuOverlay" hidden></div>
 
