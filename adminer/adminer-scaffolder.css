@@ -1,0 +1,233 @@
+/* ==========================================================================
+   Tema Scaffolder Pro per Adminer (iframe del Database Manager)
+   Stessi colori, font, bordi e raggi dell'interfaccia principale (style.css).
+   Tema scuro = predefinito; il tema chiaro/automatico è aggiunto da adminer/index.php (head()).
+   ========================================================================== */
+:root {
+    --bg: #181818;
+    --panel: #252526;
+    --panel-2: #1e1e1e;
+    --border: #333333;
+    --text: #cccccc;
+    --muted: #858585;
+    --accent: #007acc;
+    --sel: #04395e;
+    --sel-active: #37373d;
+    --input-bg: #3c3c3c;
+    --input-border: #454545;
+    --input-text: #f0f0f0;
+    --btn: #0e639c;
+    --btn-hover: #1177bb;
+    --danger: #c93c37;
+    --row-alt: rgba(255, 255, 255, 0.025);
+    --row-hover: #2a2d2e;
+    --link: #4fb3f6;
+    --c-str: #ce9178; --c-kw: #569cd6; --c-num: #b5cea8; --c-id: #dcdcaa; --c-attr: #9cdcfe; --c-date: #c586c0; --c-enum: #4ec9b0;
+    --ok-text: #5fd37a; --err-text: #f48771;
+    --code-bg: #2b2b2b;
+    --radius: 4px;
+    --menu-w: 250px;   /* larghezza del menu laterale */
+    --bar-h: 44px;     /* altezza della barra in alto (titolo del menu + percorso) */
+    color-scheme: dark;
+}
+/* Le variabili di Adminer (default.css / dark.css) puntano alla palette di Scaffolder Pro */
+:root:root {
+    --fg: var(--text);
+    --dim: var(--panel);
+    --lit: var(--sel);
+}
+
+html, body { background: var(--bg); }
+body {
+    color: var(--text);
+    font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+a, a:link, a:visited { color: var(--link); }
+a:link:hover, a:visited:hover { color: var(--accent); text-decoration: underline; }
+::selection { background: var(--sel); }
+:target { background: var(--sel); }
+
+/* --- Struttura: barra in alto, menu laterale, contenuto ------------------------------------------------ */
+#breadcrumb {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    height: var(--bar-h);
+    line-height: calc(var(--bar-h) - 1px);
+    margin: 0;
+    left: var(--menu-w);
+    right: 0;
+    padding: 0 16px;
+    color: var(--muted);
+    font-size: 12.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#breadcrumb a { color: var(--text); }
+#breadcrumb a:hover { color: var(--accent); }
+#menu {
+    margin: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--menu-w);
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 20px;
+    z-index: 2;
+}
+#menu p, #logins, #tables { border-bottom: 1px solid var(--border); }
+#logins a, #tables a, #tables span { background: transparent; }
+#tables li { padding: 1px 0; }
+#tables a:hover { text-decoration: none; color: var(--accent); }
+#tables a.active, #menu a.active { color: var(--accent); font-weight: 600; }
+#menu h1 {
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: var(--bar-h);
+    line-height: calc(var(--bar-h) - 1px);
+    font-size: 15px;
+    font-weight: 700;
+}
+#h1, #h1:visited { color: var(--accent); font-style: normal; letter-spacing: .2px; }
+#logo, #lang, #menuopen { display: none; }
+#content { margin: var(--bar-h) 0 0 var(--menu-w); padding: 14px 20px 20px 22px; }
+#content > p:first-child, #content > h2 + p { margin-top: 14px; }
+h2 {
+    margin: 0 0 14px;
+    padding: 0 0 10px;
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+}
+h3 { font-size: 14px; font-weight: 600; color: var(--text); margin: 18px 0 4px; }
+.logout { position: static; margin: 0; background: transparent; box-shadow: none; display: none; }
+.version, #version { display: none; }
+.links a { margin-right: 14px; }
+p.links, p { margin-right: 0; }
+.pages { background: var(--panel); border-color: var(--border); }
+code { background: var(--code-bg); border-radius: 3px; padding: 1px 5px; }
+
+/* --- Messaggi ------------------------------------------------------------------------------------------ */
+.message, .error {
+    border-radius: var(--radius);
+    margin: 12px 0 0;
+    padding: 8px 12px;
+}
+.message { background: rgba(46, 160, 67, 0.14); color: var(--ok-text); border: 1px solid rgba(46, 160, 67, 0.4); }
+.error { background: rgba(244, 71, 71, 0.12); color: var(--err-text); border: 1px solid var(--danger); }
+.message table { background: transparent; color: var(--text); }
+.error b { background: transparent; }
+
+/* --- Form: campi, menu, aree di testo ------------------------------------------------------------------ */
+input, select, textarea { font-family: inherit; }
+input:not([type]), input[type="text"], input[type="password"], input[type="number"], input[type="search"],
+input[type="email"], input[type="url"], input[type="date"], input[type="datetime-local"], input[type="time"],
+select, textarea {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--input-text);
+    padding: 5px 9px;
+    border-radius: var(--radius);
+    font-size: 12.5px;
+    outline: none;
+}
+textarea { font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 8px 10px; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+input.required, input.maxlength { box-shadow: 0 0 0 1px var(--danger); }
+input.default { box-shadow: none; }
+fieldset { border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); }
+legend { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; padding: 0 6px; }
+.sqlarea { width: 100%; }
+pre, pre.jush { background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; }
+td pre, td pre.jush { border: 0; padding: 0; background: transparent; }
+.jush { --text-color: var(--text); --bg-color: var(--panel-2); --php-color: var(--text); --string-color: var(--c-str); --string-plain-color: var(--c-str);
+        --keyword-color: var(--c-kw); --identifier-color: var(--c-id); --value-color: var(--c-num); --number-color: var(--c-num); --attribute-color: var(--c-attr);
+        --js-bg-color: transparent; --css-bg-color: transparent; --php-bg-color: transparent; --php-sql-bg-color: transparent; }
+
+/* --- Pulsanti ------------------------------------------------------------------------------------------ */
+input[type="submit"], input[type="button"], input[type="reset"], button, .sp-btn {
+    background: var(--btn);
+    color: #ffffff;
+    border: 0;
+    border-radius: var(--radius);
+    padding: 6px 13px;
+    font: 600 12.5px/1.3 inherit;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
+}
+input[type="submit"]:hover, input[type="button"]:hover, input[type="reset"]:hover, button:hover, .sp-btn:hover { background: var(--btn-hover); color: #fff; text-decoration: none; }
+input[type="submit"]:disabled { opacity: .45; cursor: not-allowed; }
+/* Azioni che eliminano o distruggono */
+input[name="drop"], input[name="delete"], input[name="truncate"], input[name="clone"][value^="Del"], input[value^="Drop"], input[value^="Delete"], input[value^="Elimin"] { background: var(--danger); }
+input[name="drop"]:hover, input[name="delete"]:hover, input[name="truncate"]:hover { background: #e5534b; }
+.sp-btn.secondary, input[type="button"].secondary { background: var(--sel-active); color: var(--text); }
+.icon { background-color: var(--muted); border-radius: 3px; }
+.icon:hover { background-color: var(--accent); }
+
+/* --- Tabelle dei dati ---------------------------------------------------------------------------------- */
+table { border: 0; border-spacing: 0; font-size: 12.5px; margin: 14px 0 0; }
+table, td, th, .js .column { border-color: var(--border); }
+td, th { padding: 6px 10px; border-width: 0 0 1px 0; border-style: solid; }
+th { background: var(--panel); color: var(--text); font-weight: 600; text-align: left; }
+thead { position: sticky; top: 0; z-index: 1; }
+thead th, thead td { background: var(--panel); border-bottom: 2px solid var(--border); color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .3px; text-align: left; padding: 7px 10px; }
+thead a, thead th a { color: var(--muted); }
+thead a:hover, thead th a:hover { color: var(--accent); }
+tbody tr:hover td, tbody tr:hover th { background: var(--row-hover); }
+.odds tbody tr:nth-child(2n) { background: var(--row-alt); }
+.js .checkable .checked td, .js .checkable .checked th, .js .checkable .checked:hover td, .js .checkable .checked:hover th { background: var(--sel); color: var(--text); }
+.js .checkable .checked a { color: var(--link); }
+td table, td table td, td table th { border: 0; }
+/* Il bordo esterno delle tabelle di dati: card con angoli arrotondati */
+#content > form > div > table, #content > table, #content > form > table { border: 1px solid var(--border); border-radius: 6px; border-collapse: separate; overflow: hidden; }
+#content > form > div > table tr:last-child td, #content > form > div > table tr:last-child th { border-bottom: 0; }
+.js .column { background: var(--panel); border-radius: 0 6px 6px 0; }
+.number, .datetime, .function { color: var(--c-num); }
+.char { color: var(--c-str); } .date { color: var(--c-date); } .enum { color: var(--c-enum); } .binary { color: var(--err-text); } .time { color: var(--muted); }
+.view { color: var(--muted); }
+
+/* --- Barra di azione fissa in fondo (Salva / Elimina ...) ---------------------------------------------- */
+.footer { box-shadow: 0 -6px 12px 6px var(--bg); }
+.footer > div { background: var(--bg); border-top: 1px solid var(--border); padding-top: .5em; }
+.footer fieldset { background: var(--panel); }
+
+/* --- Annulla i ritocchi del tema scuro di Adminer (dark.css, attivo se il sistema è scuro) -------------- */
+.icon { filter: none; }
+#edit-fields tbody tr:hover td, #edit-fields tbody tr:hover th { background: var(--row-hover); }
+#schema div.table a { color: var(--link); }
+:target { color: inherit; }
+#menu .active { color: var(--accent); }
+#menu { border-color: var(--border); }
+h1 { border-color: var(--border); }
+.version, #version { color: var(--muted); }
+
+/* --- Varie --------------------------------------------------------------------------------------------- */
+#schema .table { background: var(--panel); border-color: var(--border); border-radius: 4px; }
+#help { background: var(--panel); border-color: var(--border); color: var(--text); border-radius: 4px; }
+.explain table { background: var(--panel-2); }
+.time { color: var(--muted); }
+hr { border: 0; border-top: 1px solid var(--border); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--sel-active); border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: content-box; border: 2px solid transparent; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Messaggio quando la connessione a MySQL non riesce (adminer/index.php → loginForm) */
+.sp-login { max-width: 560px; margin: 8vh auto 0; padding: 22px 24px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+.sp-login h2 { border: 0; padding: 0; margin: 0 0 10px; color: var(--text); }
+.sp-login p { margin: 8px 0; color: var(--muted); }
+body.adminer #content > .sp-login ~ *, .sp-login + p { margin-right: 0; }
+
+/* Schermi stretti: menu sopra al contenuto */
+@media all and (max-width: 800px) {
+    #breadcrumb { left: 0 !important; }
+    #menu { position: static; width: auto; min-width: 0; border-right: 0; border-bottom: 1px solid var(--border); margin-top: var(--bar-h); bottom: auto; }
+    #content { margin: 0 !important; padding: 12px; }
+}

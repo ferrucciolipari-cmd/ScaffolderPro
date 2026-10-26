@@ -1017,6 +1017,150 @@ switch ($action) {
         jsonOut(['ok' => true, 'config' => publicConfig(), 'limits' => serverLimits()]);
     }
 
+    // L2. SCHEDA CONFIGURAZIONI: database MySQL, GitHub, chiavi MCP (password e token restano sul server)
+    case 'save_env': {
+        $cfg = loadConfig();
+        $in  = json_decode((string)($_POST['env'] ?? '{}'), true);
+        if (!is_array($in)) fail(t('api.invalid_data'));
+        foreach (['db_host' => 255, 'db_user' => 128, 'db_name' => 128, 'github_user' => 100] as $k => $max) {
+            if (isset($in[$k])) $cfg[$k] = mb_substr(trim((string)$in[$k]), 0, $max);
+        }
+        if ($cfg['db_host'] === '') $cfg['db_host'] = 'localhost';
+        if (isset($in['db_port'])) {
+            $port = trim((string)$in['db_port']);
+            if ($port !== '' && (!ctype_digit($port) || (int)$port < 1 || (int)$port > 65535)) fail(t('env.port_invalid'));
+            $cfg['db_port'] = $port;
+        }
+        // Password e token si cambiano solo se ne arriva uno nuovo; "remove_*" li cancella
+        if (!empty($in['remove_db_pass'])) $cfg['db_pass'] = '';
+        if (isset($in['db_pass']) && (string)$in['db_pass'] !== '') $cfg['db_pass'] = (string)$in['db_pass'];
+        if (!empty($in['remove_github_token'])) $cfg['github_token'] = '';
+        if (isset($in['github_token']) && trim((string)$in['github_token']) !== '') $cfg['github_token'] = trim((string)$in['github_token']);
+        if (isset($in['mcp']) && is_array($in['mcp'])) {
+            $old = [];
+            foreach ((array)$cfg['mcp_keys'] as $m) if (is_array($m)) $old[(string)($m['name'] ?? '')] = (string)($m['key'] ?? '');
+            $list = [];
+            foreach (array_slice($in['mcp'], 0, 50) as $m) {
+                $name = trim((string)($m['name'] ?? ''));
+                if ($name === '') continue;
+                if (!preg_match('/^[A-Za-z0-9_.-]{1,40}$/', $name)) fail(t('env.mcp_name_invalid', ['name' => $name]));
+                $url = mb_substr(trim((string)($m['url'] ?? '')), 0, 500);
+                if ($url !== '' && !preg_match('#^https?://#i', $url)) fail(t('env.mcp_url_invalid', ['name' => $name]));
+                $key = trim((string)($m['key'] ?? ''));
+                // Chiave lasciata vuota = si tiene quella già salvata con lo stesso nome
+                $list[$name] = ['name' => $name, 'url' => $url, 'key' => $key !== '' ? mb_substr($key, 0, 500) : ($old[trim((string)($m['orig'] ?? $name))] ?? '')];
+            }
+            $cfg['mcp_keys'] = array_values($list);
+        }
+        if (!saveConfig($cfg)) fail(t('api.config_write'));
+        jsonOut(['ok' => true, 'config' => publicConfig()]);
+    }
+
+    // Prova la connessione MySQL con i dati salvati
+    case 'test_db': {
+        $cfg = loadConfig();
+        if (!extension_loaded('mysqli')) fail(t('env.no_mysqli'));
+        mysqli_report(MYSQLI_REPORT_OFF);
+        $m = mysqli_init();
+        $m->options(MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+        $port = (string)$cfg['db_port'] !== '' ? (int)$cfg['db_port'] : 3306;
+        if (!@$m->real_connect((string)$cfg['db_host'], (string)$cfg['db_user'], (string)$cfg['db_pass'], (string)$cfg['db_name'] ?: null, $port)) {
+            fail(t('env.db_failed', ['error' => $m->connect_error ?: 'connection failed']));
+        }
+        $ver = $m->server_info;
+        $m->close();
+        jsonOut(['ok' => true, 'message' => t('env.db_ok', ['version' => $ver])]);
+    }
+
+    // Prova il token GitHub salvato
+    case 'test_github': {
+        $cfg = loadConfig();
+        if ((string)$cfg['github_token'] === '') fail(t('env.gh_no_token'));
+        if (!function_exists('curl_init')) fail(t('env.no_curl'));
+        $ch = curl_init(ghBase() . '/user');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_HTTPHEADER => ['Accept: application/vnd.github+json', 'User-Agent: ScaffolderPro', 'Authorization: Bearer ' . $cfg['github_token']]]);
+        $body = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        curl_close($ch);
+        if ($body === false) fail(t('env.gh_failed', ['error' => $err ?: 'network']));
+        $j = json_decode((string)$body, true);
+        if ($code !== 200 || empty($j['login'])) fail(t('env.gh_failed', ['error' => (string)($j['message'] ?? ('HTTP ' . $code))]));
+        jsonOut(['ok' => true, 'message' => t('env.gh_ok', ['user' => $j['login']])]);
+    }
+
+    // L3. PUBBLICAZIONE SU GITHUB: anteprima (quanti file, quali saltati) e invio come un unico commit
+    case 'github_plan': {
+        $cfg = loadConfig();
+        $plan = ghCollectFiles($rootDir, array_filter(array_map('trim', explode(',', (string)$cfg['backup_skip']))));
+        jsonOut(['ok' => true, 'has_token' => (string)$cfg['github_token'] !== '', 'owner' => (string)$cfg['github_user'],
+                 'name' => preg_replace('/[^A-Za-z0-9_.-]+/', '-', basename($rootDir)) ?: 'project',
+                 'files' => count($plan['files']), 'bytes' => $plan['bytes'], 'skipped' => array_slice($plan['skipped'], 0, 20), 'skipped_count' => count($plan['skipped']),
+                 'too_many' => count($plan['files']) > GH_MAX_FILES || $plan['bytes'] > GH_MAX_TOTAL]);
+    }
+
+    case 'github_publish': {
+        $cfg = loadConfig();
+        if ((string)$cfg['github_token'] === '') fail(t('env.gh_no_token'));
+        if (!function_exists('curl_init')) fail(t('env.no_curl'));
+        @set_time_limit(600);
+        $name = trim((string)($_POST['repo'] ?? ''));
+        if (!preg_match('/^[A-Za-z0-9_.-]{1,100}$/', $name) || $name === '.' || $name === '..') fail(t('gh.name_invalid'));
+        $private = ($_POST['private'] ?? '1') !== '0';
+        $branchIn = trim((string)($_POST['branch'] ?? ''));
+        if ($branchIn !== '' && !preg_match('#^[A-Za-z0-9_./-]{1,100}$#', $branchIn)) fail(t('gh.branch_invalid'));
+        $message = trim((string)($_POST['message'] ?? '')) ?: 'Update from Scaffolder Pro';
+        $message = mb_substr($message, 0, 500);
+
+        [$c, $me] = ghApi('GET', '/user');
+        if ($c !== 200 || empty($me['login'])) fail(t('env.gh_failed', ['error' => ghError($me, $c)]));
+        $owner = trim((string)$cfg['github_user']) ?: $me['login'];
+        if (!preg_match('/^[A-Za-z0-9-]{1,39}$/', $owner)) fail(t('gh.owner_invalid'));
+
+        $plan = ghCollectFiles($rootDir, array_filter(array_map('trim', explode(',', (string)$cfg['backup_skip']))));
+        if (!$plan['files']) fail(t('gh.no_files'));
+        if (count($plan['files']) > GH_MAX_FILES || $plan['bytes'] > GH_MAX_TOTAL) fail(t('gh.too_big', ['files' => GH_MAX_FILES, 'mb' => (int)(GH_MAX_TOTAL / 1048576)]));
+
+        // Repository: si usa quello esistente, altrimenti lo si crea (con un primo commit, perché l'API Git non scrive in un repository vuoto)
+        $created = false;
+        [$c, $repo] = ghApi('GET', "/repos/$owner/$name");
+        if ($c === 404) {
+            $body = ['name' => $name, 'private' => $private, 'auto_init' => true, 'description' => 'Created with Scaffolder Pro'];
+            [$c, $repo] = strcasecmp($owner, $me['login']) === 0 ? ghApi('POST', '/user/repos', $body) : ghApi('POST', "/orgs/$owner/repos", $body);
+            if ($c !== 201) fail(t('gh.create_failed', ['error' => ghError($repo, $c)]));
+            $created = true;
+        } elseif ($c !== 200) fail(t('gh.repo_failed', ['error' => ghError($repo, $c)]));
+        if (empty($repo['permissions']['push']) && !$created) fail(t('gh.no_push'));
+        $branch = $branchIn !== '' ? $branchIn : (string)($repo['default_branch'] ?? 'main');
+
+        // Branch: commit di partenza (se il branch non esiste si parte dal predefinito)
+        [$c, $ref] = ghApi('GET', "/repos/$owner/$name/git/ref/heads/" . $branch);
+        $isNewBranch = false;
+        if ($c === 404) {
+            [$c, $def] = ghApi('GET', "/repos/$owner/$name/git/ref/heads/" . ($repo['default_branch'] ?? 'main'));
+            if ($c !== 200) fail(t('gh.repo_failed', ['error' => ghError($def, $c)]));
+            $parent = $def['object']['sha'];
+            $isNewBranch = true;
+        } elseif ($c === 200) $parent = $ref['object']['sha'];
+        else fail(t('gh.repo_failed', ['error' => ghError($ref, $c)]));
+
+        $up = ghUploadBlobs($owner, $name, $plan['files']);
+        if (isset($up['error'])) fail($up['error']);
+        // Albero completo, senza base: il repository diventa identico alla cartella (i file tolti qui spariscono anche lì)
+        [$c, $tree] = ghApi('POST', "/repos/$owner/$name/git/trees", ['tree' => $up['entries']]);
+        if ($c !== 201) fail(t('gh.commit_failed', ['error' => ghError($tree, $c)]));
+        [$c, $commit] = ghApi('POST', "/repos/$owner/$name/git/commits", ['message' => $message, 'tree' => $tree['sha'], 'parents' => [$parent]]);
+        if ($c !== 201) fail(t('gh.commit_failed', ['error' => ghError($commit, $c)]));
+        [$c, $upd] = $isNewBranch
+            ? ghApi('POST', "/repos/$owner/$name/git/refs", ['ref' => 'refs/heads/' . $branch, 'sha' => $commit['sha']])
+            : ghApi('PATCH', "/repos/$owner/$name/git/refs/heads/" . $branch, ['sha' => $commit['sha']]);
+        if ($c !== 200 && $c !== 201) fail(t('gh.commit_failed', ['error' => ghError($upd, $c)]));
+        addLog('create', "GitHub ➔ $owner/$name@$branch (" . count($plan['files']) . ' files)');
+        jsonOut(['ok' => true, 'url' => (string)($repo['html_url'] ?? "https://github.com/$owner/$name"), 'commit' => substr($commit['sha'], 0, 7),
+                 'files' => count($plan['files']), 'created' => $created, 'branch' => $branch, 'skipped_count' => count($plan['skipped'])]);
+    }
+
     // M. RESETTA TUTTO: impostazioni, database (versioni, cestino, registro, richieste API, root) e file
     //    temporanei, come appena installato. Restano i file dei progetti e .htpasswd.
     case 'reset_all': {

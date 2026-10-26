@@ -5,6 +5,8 @@ No package installations, no build: just copy the folder and open it in the brow
 
 ## ✨ Features
 
+- **3 tabs in the header** (no page reload): **Generator** (the editor described below), **Configurations** (MySQL host/port/user/password, GitHub token, MCP server keys: secrets stay on the server in `data/config.json`, the browser only sees the last 4 characters) and **Database Manager** ([Adminer](https://www.adminer.org/) full-screen in an `<iframe>`, signed in automatically to MySQL with the data of the Configurations tab, themed like the rest of the app).
+- **Publish to GitHub** (Explorer ☰ menu): sends the files of the working root to a repository as a single commit through the GitHub API (no `git` needed), using the token saved in Configurations. Creates the repository if missing; secrets (`.env`, `.htpasswd`), databases, files over 10 MB and the excluded folders are never sent.
 - **Explorer** with multi-selection, drag & drop (including from the computer), right-click menu, rename, duplicate (⌘D), delete with trash bin.
 - **Go to file** (⌘P / Ctrl+P): fuzzy search on all the file paths of the root.
 - **Go to line** (⌃G / Ctrl+G): type `120` or `120:5` (line:column). A button next to the zoom switches word wrap on and off.
@@ -25,6 +27,15 @@ No package installations, no build: just copy the folder and open it in the brow
 - **API requests** executed by the server (keys never reach the browser), with cURL import.
 - **Integrated Claude AI**: reads the project and proposes changes that you approve one by one.
 - **Import from Golem Lite**: brings the structure of a [Golem Lite](#-import-from-golem-lite) headless CMS instance into the root, so Claude can build a front-end that reads the contents from the API.
+
+## 🗄️ Database Manager (Adminer)
+
+The third tab embeds Adminer 5.4.1 (`adminer/adminer.php`, Jakub Vrána, Apache 2.0 / GPL 2, **unmodified, licence header included**; see `adminer/NOTICE.md`).
+
+- It is opened through `adminer/index.php`, which first checks the Scaffolder Pro sign-in, then signs in to MySQL with host, port, user, password and default database saved in **Configurations** (no login screen, the password never reaches the browser). If MySQL cannot be reached, a message with a link to Configurations is shown instead of Adminer's login form.
+- `adminer/adminer-scaffolder.css` gives Adminer the colours (dark / light / auto, as in Settings → Interface), font, form fields, buttons and tables of Scaffolder Pro.
+- `adminer/.htaccess` blocks the direct access to `adminer.php` (Apache). On other web servers deny that file yourself.
+- Needs the PHP extension `mysqli` (or `pdo_mysql`) and a MySQL / MariaDB server. To update Adminer replace `adminer/adminer.php` with a newer single-file MySQL release.
 
 ## 📋 Requirements
 

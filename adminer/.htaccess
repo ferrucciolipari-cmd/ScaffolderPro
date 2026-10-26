@@ -1,0 +1,7 @@
+# Adminer si apre solo da index.php (che verifica l'accesso a Scaffolder Pro e fa il login automatico):
+# il file originale non deve essere raggiungibile direttamente dal web.
+<Files "adminer.php">
+    Require all denied
+</Files>
+Options -Indexes
+DirectoryIndex index.php

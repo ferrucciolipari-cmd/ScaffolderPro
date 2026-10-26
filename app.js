@@ -158,7 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initSetupAuth();
     initLogout();
     initMenuOverlay();
+    initModalOverlay();
+    initGithub();
     initSecurity();
+    initConfigPanel();
+    initMainTabs();
 
     $('#rootName').textContent = baseName(APP.rootDir) || APP.rootDir;
     $('#welcomeRoot').textContent = L('js.working_root', { path: APP.rootDir });
@@ -705,6 +709,7 @@ function initExplorer() {
             case 'zip': state.selected.size ? zipItems([...state.selected]) : toast(L('js.select_to_zip'), 'warn'); break;
             case 'refresh': refreshTree().then(() => toast(L('js.explorer_refreshed'))); break;
             case 'collapse': state.openFolders.clear(); store('open', []); renderTree(); break;
+            case 'github': openGithubDialog(); break;
             case 'quick-open': openQuickOpen(); break;
             case 'golem': openGolem(); break;
         }
@@ -2248,6 +2253,187 @@ function initSettings() {
     });
 }
 
+// ----------------------------------------------------------------------------
+// SCHEDE PRINCIPALI: Generatore · Configurazioni · Database Manager
+// Una sola struttura nella pagina: si mostra un pannello alla volta (attributo hidden sugli altri), senza ricaricare.
+// L'iframe di Adminer si carica alla prima apertura del Database Manager.
+// ----------------------------------------------------------------------------
+function initMainTabs() {
+    const tabs = $$('#mainTabs .main-tab');
+    const names = tabs.map(t => t.dataset.tab);
+    const frame = $('#dbmFrame');
+
+    function select(name, focus) {
+        if (!names.includes(name)) name = 'generator';
+        tabs.forEach(t => {
+            const on = t.dataset.tab === name;
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            t.tabIndex = on ? 0 : -1;
+            if (on && focus) t.focus();
+        });
+        $$('.tab-panel').forEach(p => { p.hidden = p.dataset.panel !== name; });
+        document.body.dataset.tab = name;
+        storeGlobal('main_tab', name);
+        try { history.replaceState(null, '', name === 'generator' ? location.pathname + location.search : '#' + name); } catch (e) { /* history non disponibile */ }
+        if (name === 'database' && !frame.getAttribute('src')) frame.src = frame.dataset.src;
+        if (name === 'generator') requestAnimationFrame(() => { if (editor) editor.resize(); });
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => select(t.dataset.tab, false)));
+    $('#mainTabs').addEventListener('keydown', (e) => {
+        const i = names.indexOf(document.body.dataset.tab);
+        const to = { ArrowRight: (i + 1) % names.length, ArrowLeft: (i + names.length - 1) % names.length, Home: 0, End: names.length - 1 }[e.key];
+        if (to === undefined) return;
+        e.preventDefault();
+        select(names[to], true);
+    });
+    window.addEventListener('hashchange', () => select(location.hash.slice(1), false));
+    frame.addEventListener('load', () => { $('#dbmLoading').hidden = true; });
+    // Dopo aver cambiato i dati MySQL il Database Manager rifà il login automatico alla prossima apertura
+    window.reloadDbManager = () => {
+        $('#dbmLoading').hidden = false;
+        frame.removeAttribute('src');
+        if (document.body.dataset.tab === 'database') frame.src = frame.dataset.src;
+    };
+
+    const fromHash = location.hash.slice(1);
+    select(names.includes(fromHash) ? fromHash : loadGlobal('main_tab', 'generator'), false);
+}
+
+// ----------------------------------------------------------------------------
+// SCHEDA CONFIGURAZIONI: database MySQL, GitHub, chiavi MCP (i segreti restano sul server)
+// ----------------------------------------------------------------------------
+function initConfigPanel() {
+    const form = $('#configForm');
+    const list = $('#mcpList');
+
+    function mcpRow(m) {
+        const row = document.createElement('div');
+        row.className = 'mcp-row';
+        row.dataset.orig = m.name || '';
+        row.innerHTML = `<label>${esc(L('env.mcp_name'))} <input type="text" data-f="name" spellcheck="false" value="${esc(m.name || '')}"></label>`
+            + `<label>${esc(L('env.mcp_url'))} <input type="text" data-f="url" spellcheck="false" value="${esc(m.url || '')}"></label>`
+            + `<label>${esc(L('env.mcp_key'))} <input type="password" data-f="key" autocomplete="new-password" placeholder="${esc(m.has_key ? m.key_hint : '')}"></label>`
+            + `<button type="button" class="icon-btn" title="${esc(L('env.mcp_remove'))}">${ic('trash')}</button>`;
+        row.querySelector('button').addEventListener('click', () => { row.remove(); emptyHint(); });
+        return row;
+    }
+    function emptyHint() {
+        let e = list.querySelector('.mcp-empty');
+        if (!list.querySelector('.mcp-row')) {
+            if (!e) { e = document.createElement('div'); e.className = 'mcp-empty muted'; e.textContent = L('env.mcp_empty'); list.appendChild(e); }
+        } else if (e) e.remove();
+    }
+    function fill() {
+        const c = APP.config;
+        ['db_host', 'db_port', 'db_user', 'db_name', 'github_user'].forEach(k => { form[k].value = c[k] ?? ''; });
+        form.db_pass.value = ''; form.github_token.value = '';
+        form.remove_db_pass.checked = false; form.remove_github_token.checked = false;
+        form.querySelector('[data-state="db_pass"]').textContent = c.has_db_pass ? L('env.key_saved', { hint: '••••••••' }) : L('env.no_value');
+        form.querySelector('[data-state="github_token"]').textContent = c.has_github_token ? L('env.key_saved', { hint: c.github_token_hint }) : L('env.no_value');
+        list.innerHTML = '';
+        (c.mcp || []).forEach(m => list.appendChild(mcpRow(m)));
+        emptyHint();
+    }
+    function collect() {
+        return {
+            db_host: form.db_host.value, db_port: form.db_port.value, db_user: form.db_user.value, db_pass: form.db_pass.value,
+            remove_db_pass: form.remove_db_pass.checked, db_name: form.db_name.value,
+            github_user: form.github_user.value, github_token: form.github_token.value, remove_github_token: form.remove_github_token.checked,
+            mcp: $$('.mcp-row', list).map(r => ({ orig: r.dataset.orig, name: r.querySelector('[data-f="name"]').value, url: r.querySelector('[data-f="url"]').value, key: r.querySelector('[data-f="key"]').value })),
+        };
+    }
+    function save() {
+        return apiPost({ action: 'save_env', env: collect() }).then(res => {
+            if (!res.ok) { $('#configMsg').textContent = res.error; toast(res.error, 'error'); return false; }
+            APP.config = res.config;
+            fill();
+            if (window.reloadDbManager) window.reloadDbManager();
+            return true;
+        }).catch(err => { toast(L('js.network_error') + ': ' + err, 'error'); return false; });
+    }
+    function test(btn, msgEl, action) {
+        btn.addEventListener('click', () => {
+            msgEl.className = 'muted env-result';
+            msgEl.textContent = L('env.testing');
+            btn.disabled = true;
+            // La prova usa i dati salvati: prima si salva quello che è nel modulo
+            save().then(ok => ok ? apiPost({ action }) : { ok: false, error: $('#configMsg').textContent })
+                .then(res => { msgEl.className = 'muted env-result ' + (res.ok ? 'ok' : 'err'); msgEl.textContent = res.ok ? res.message : res.error; })
+                .catch(err => { msgEl.className = 'muted env-result err'; msgEl.textContent = String(err); })
+                .finally(() => { btn.disabled = false; });
+        });
+    }
+
+    $('#mcpAdd').addEventListener('click', () => { const r = mcpRow({}); list.appendChild(r); emptyHint(); r.querySelector('input').focus(); });
+    $('#openSettingsFromCfg').addEventListener('click', () => $('#settingsBtn').click());
+    test($('#testDbBtn'), $('#testDbMsg'), 'test_db');
+    test($('#testGhBtn'), $('#testGhMsg'), 'test_github');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        $('#configMsg').textContent = '';
+        save().then(ok => { if (ok) toast(L('env.saved')); });
+    });
+    fill();
+}
+
+// ----------------------------------------------------------------------------
+// PUBBLICA SU GITHUB: la cartella di lavoro diventa un commit nel repository scelto (token dalla scheda Configurazioni)
+// ----------------------------------------------------------------------------
+function openGithubDialog() {
+    const form = $('#githubForm');
+    $('#ghDone').hidden = true;
+    $('#ghMsg').textContent = '';
+    $('#ghSummary').textContent = '';
+    form.message.value = '';
+    $('#ghPublish').disabled = true;
+    showModal($('#githubDialog'));
+    apiPost({ action: 'github_plan' }).then(r => {
+        if (!r.ok) { $('#ghMsg').textContent = r.error; return; }
+        form.repo.value = r.name;
+        $('#ghNoToken').hidden = r.has_token;
+        $('#ghOwner').textContent = r.owner ? L('gh.owner_line', { owner: r.owner }) : '';
+        $('#ghSummary').innerHTML = esc(L('gh.summary', { files: r.files, size: humanSize(r.bytes) }))
+            + (r.skipped_count ? '<br><span class="muted">' + esc(L('gh.skipped', { n: r.skipped_count })) + '</span>' : '')
+            + (r.too_many ? '<br><b>' + esc(L('gh.too_big', { files: 1500, mb: 80 })) + '</b>' : '');
+        $('#ghPublish').disabled = !r.has_token || r.too_many || !r.files;
+    }).catch(err => { $('#ghMsg').textContent = L('js.network_error') + ': ' + err; });
+}
+
+function initGithub() {
+    const form = $('#githubForm');
+    $('#ghOpenConfig').addEventListener('click', () => { $('#githubDialog').close(); location.hash = '#config'; });
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const btn = $('#ghPublish');
+        btn.disabled = true;
+        $('#ghDone').hidden = true;
+        $('#ghMsg').textContent = L('gh.publishing');
+        apiPost({ action: 'github_publish', repo: form.repo.value, private: form.private.value, branch: form.branch.value, message: form.message.value })
+            .then(r => {
+                if (!r.ok) { $('#ghMsg').textContent = r.error; toast(r.error, 'error'); return; }
+                $('#ghMsg').textContent = '';
+                const done = $('#ghDone');
+                done.innerHTML = esc(L('gh.done', { files: r.files, branch: r.branch, commit: r.commit })) + ' <a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(L('gh.open_repo')) + '</a>';
+                done.hidden = false;
+                refreshSide();
+            })
+            .catch(err => { $('#ghMsg').textContent = L('js.network_error') + ': ' + err; })
+            .finally(() => { btn.disabled = false; });
+    });
+}
+
+// Velo scuro sotto ogni finestra modale (<dialog>) aperta, piccola o grande: visibile finché almeno una è aperta.
+// Il dialog sta nello strato superiore del browser, quindi sopra il velo; il velo copre header, schede e iframe.
+function initModalOverlay() {
+    const overlay = $('#modalOverlay');
+    const dialogs = $$('dialog');
+    const sync = () => { overlay.hidden = !dialogs.some(d => d.open); };
+    const mo = new MutationObserver(sync);
+    dialogs.forEach(d => mo.observe(d, { attributes: true, attributeFilter: ['open'] }));
+    sync();
+}
+
 // Velo sotto i menu a comparsa: visibile finché uno dei menu è aperto. Ogni menu si chiude già con un clic fuori
 // (il clic sul velo arriva al document); il tasto destro sul velo chiude senza aprire il menu del browser.
 function initMenuOverlay() {
@@ -3779,6 +3965,7 @@ function initTooltips() {
 // ----------------------------------------------------------------------------
 function initShortcuts() {
     document.addEventListener('keydown', (e) => {
+        if (document.body.dataset.tab !== 'generator') return;   // editor, Explorer e ricerche vivono solo nel Generatore
         const mod = e.metaKey || e.ctrlKey;
         if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); saveActive(); return; }
         if (mod && e.shiftKey && e.key.toLowerCase() === 'f') { e.preventDefault(); openSearch(true); return; }

@@ -1225,7 +1225,12 @@ dialog.modal.large { width: min(1100px, 94vw); height: 86vh; }
     border-top: 1px solid var(--c-333333);
 }
 #claudeDialog .claude-panel > .hrow:last-child .pbtn { padding: 7px 18px; }
-dialog::backdrop { background: var(--c-000000-42); }
+/* Il velo scuro sotto le finestre modali è #modalOverlay (vedi initModalOverlay in app.js): un elemento normale, uguale in
+   tutti i browser. Il ::backdrop nativo resta trasparente (serve solo a ricevere il clic fuori dalla finestra). */
+dialog::backdrop { background: transparent; }
+.modal-overlay { position: fixed; inset: 0; z-index: 9980; background: rgba(0, 0, 0, 0.6); animation: fadeIn 0.2s ease-out; }
+:root[data-theme="light"] .modal-overlay { background: rgba(0, 0, 0, 0.4); }
+@media (prefers-color-scheme: light) { :root[data-theme="auto"] .modal-overlay { background: rgba(0, 0, 0, 0.4); } }
 
 #versionContent {
     margin: 0;
@@ -1463,6 +1468,14 @@ body { height: 100vh; overflow: hidden; }
     overflow: hidden;
 }
 .editor-card .notice { margin: 8px 12px 0; }
+/* Avviso del file: fisso in basso, galleggia sopra l'editor (non ne cambia l'altezza) */
+.editor-card { position: relative; }
+.editor-card > #fileNotice {
+    position: absolute; left: 12px; right: 12px; bottom: 12px; margin: 0; z-index: 30;
+    background-color: var(--panel); box-shadow: 0 4px 14px var(--c-000000-45);
+}
+.editor-card > #fileNotice.error { background-image: linear-gradient(var(--c-f44747-10), var(--c-f44747-10)); }
+.editor-card > #fileNotice.ok { background-image: linear-gradient(var(--c-2ea043-12), var(--c-2ea043-12)); }
 .workspace-grid {
     flex: 1;
     min-height: 0;
@@ -2290,3 +2303,82 @@ fieldset legend .ic { width: 13px; height: 13px; vertical-align: -2px; }
 /* Vai alla riga */
 #gotoLineDialog .qo-input input { font-variant-numeric: tabular-nums; }
 #gotoLineHint.err { color: var(--c-f48771); }
+
+/* ==========================================================================
+   9. NAVIGAZIONE A 3 SCHEDE (Generatore · Configurazioni · Database Manager)
+   Un solo pannello visibile alla volta: gli altri hanno l'attributo hidden (vedi initMainTabs in app.js).
+   ========================================================================== */
+.main-tabs {
+    display: flex;
+    align-self: stretch;
+    align-items: stretch;
+    gap: 2px;
+    margin: -8px 0 -9px 8px;   /* le schede toccano il bordo inferiore dell'header */
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.main-tab {
+    background: transparent;
+    color: var(--muted);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 7px;
+}
+.main-tab .ic { width: 16px; height: 16px; }
+.main-tab:hover { background: var(--c-2a2d2e); color: var(--text); }
+.main-tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); background: var(--c-2a2d2e); }
+.main-tab[aria-selected="true"] .ic { color: var(--accent); }
+.main-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* Il selettore della root riguarda solo il Generatore */
+body:not([data-tab="generator"]) #rootPicker { display: none; }
+
+.tab-panels { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.tab-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* Configurazioni */
+.config-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 16px 24px; }
+.config-form { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.config-head h2 { margin: 0 0 4px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.config-head h2 .ic { width: 20px; height: 20px; color: var(--accent); }
+.config-head p { margin: 0; font-size: 12.5px; }
+.config-form fieldset { background: var(--panel); border-color: var(--border); padding: 12px 14px; }
+.config-form fieldset input[type="text"], .config-form fieldset input[type="password"] { width: 100%; }
+.config-form legend .ic { width: 13px; height: 13px; vertical-align: -2px; }
+.env-row { display: flex; gap: 10px; }
+.env-row label { flex: 1; min-width: 0; }
+.env-row .env-port { flex: 0 0 90px; }
+.env-result { font-size: 12px; }
+.env-result.ok { color: var(--c-4ec9b0); }
+.env-result.err { color: var(--c-f48771); }
+.mcp-list { display: flex; flex-direction: column; gap: 8px; }
+.mcp-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(160px, 2fr) minmax(130px, 1.4fr) auto; gap: 8px; align-items: end; }
+.mcp-row label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--muted); }
+.mcp-row .muted { font-size: 11px; }
+.mcp-empty { font-size: 12px; }
+.config-foot { padding-top: 12px; border-top: 1px solid var(--border); align-items: center; }
+
+/* Database Manager: l'iframe di Adminer riempie tutto lo spazio sotto l'header */
+.dbm-frame-wrap { position: relative; flex: 1; min-height: 0; background: var(--bg); }
+#dbmFrame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); display: block; }
+.dbm-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+
+@media (max-width: 760px) {
+    header { gap: 6px; }
+    .main-tabs { order: 3; width: 100%; flex: 1 1 100%; margin: 0 -10px -9px; overflow-x: auto; }
+    .main-tab { flex: 1; justify-content: center; padding: 10px 8px; font-size: 12.5px; }
+    .tab-panels, .tab-panel { flex: none; }
+    .config-scroll { overflow: visible; }
+    .mcp-row { grid-template-columns: 1fr; }
+    .env-row { flex-direction: column; }
+    .env-row .env-port { flex: 1; }
+    .dbm-frame-wrap { height: calc(100vh - 110px); height: calc(100dvh - 110px); }
+}
+
+/* Pubblica su GitHub */
+.gh-summary { font-size: 12.5px; padding: 8px 0 2px; }
+#githubDialog .notice { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin: 8px 0; }
+#githubDialog .notice a { color: inherit; text-decoration: underline; }

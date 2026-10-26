@@ -9,7 +9,7 @@ I test sono in ordine: quelli che attivano la password e il blocco dei tentativi
 """
 import base64, hashlib, hmac, http.cookiejar, io, json, os, re, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, uuid, zipfile, zlib
 
-BASE, WWW, PHP, SITE_URL, GOLEM_URL = sys.argv[1:6]   # SITE_URL: il sito di prova su un altro server; GOLEM_URL: tests/fake_golem.php
+BASE, WWW, PHP, SITE_URL, GOLEM_URL, GH_URL = sys.argv[1:7]   # SITE_URL: il sito di prova su un altro server; GOLEM_URL: tests/fake_golem.php; GH_URL: finto GitHub
 APP = os.path.join(WWW, 'scaffolder-pro')
 SITE = os.path.join(WWW, 'site')
 fails = 0
@@ -396,6 +396,79 @@ check('limite per file applicato', not r.get('ok'), r)
 me.post({'action': 'save_settings', 'settings': json.dumps({'upload_max_gb': 5})})
 r = me.get('security')
 check('sicurezza senza password: disattivata', r.get('ok') and r.get('auth') is False, r)
+
+# ---------------------------------------------------------------------------
+section('Configurazioni (database, GitHub, MCP) e Database Manager')
+env = {'db_host': '127.0.0.1', 'db_port': '3399', 'db_user': 'sp', 'db_pass': 'supersegreta', 'db_name': 'demo',
+       'github_user': 'octo', 'github_token': 'ghp_abcdefghijklmnop1234',
+       'mcp': [{'name': 'docs', 'url': 'https://mcp.example.com/sse', 'key': 'mcp-key-9999'}]}
+r = me.post({'action': 'save_env', 'env': json.dumps(env)})
+c = r.get('config', {})
+check('configurazioni salvate', r.get('ok') and c.get('db_host') == '127.0.0.1' and c.get('db_port') == '3399' and c.get('github_user') == 'octo', r)
+check('password, token e chiavi MCP non tornano al browser',
+      'db_pass' not in c and 'github_token' not in c and 'mcp_keys' not in c and 'supersegreta' not in json.dumps(r) and 'mcp-key-9999' not in json.dumps(r), r)
+check('stato dei segreti: presenza e ultimi 4 caratteri', c.get('has_db_pass') is True and c.get('github_token_hint') == '••••1234'
+      and c.get('mcp') == [{'name': 'docs', 'url': 'https://mcp.example.com/sse', 'has_key': True, 'key_hint': '••••9999'}], c)
+st, b = me.req(BASE + 'index.php')
+check('index.php non contiene i segreti', b'supersegreta' not in b and b'ghp_abcdefghijklmnop1234' not in b and b'mcp-key-9999' not in b, st)
+check('3 schede e iframe di Adminer nella pagina', all(x in b for x in (b'data-tab="generator"', b'data-tab="config"', b'data-tab="database"', b'id="dbmFrame"', b'data-src="adminer/"')), st)
+r = me.post({'action': 'save_env', 'env': json.dumps({'db_host': 'localhost', 'db_user': 'root2'})})
+cfg = json.load(open(os.path.join(WWW, 'scaffolder-pro', 'data', 'config.json')))
+check('password e token restano se non ne arrivano di nuovi', r.get('ok') and cfg['db_pass'] == 'supersegreta' and cfg['github_token'] == 'ghp_abcdefghijklmnop1234'
+      and cfg['mcp_keys'][0]['key'] == 'mcp-key-9999', cfg)
+r = me.post({'action': 'save_env', 'env': json.dumps({'mcp': [{'name': 'docs2', 'orig': 'docs', 'url': 'https://mcp.example.com/sse', 'key': ''}]})})
+cfg = json.load(open(os.path.join(WWW, 'scaffolder-pro', 'data', 'config.json')))
+check('server MCP rinominato: la chiave salvata si mantiene', r.get('ok') and cfg['mcp_keys'][0]['name'] == 'docs2' and cfg['mcp_keys'][0]['key'] == 'mcp-key-9999', cfg)
+check('porta non valida rifiutata', not me.post({'action': 'save_env', 'env': json.dumps({'db_port': '99999'})}).get('ok'))
+check('nome MCP non valido rifiutato', not me.post({'action': 'save_env', 'env': json.dumps({'mcp': [{'name': 'a b', 'url': ''}]})}).get('ok'))
+check('indirizzo MCP non valido rifiutato', not me.post({'action': 'save_env', 'env': json.dumps({'mcp': [{'name': 'ok', 'url': 'ftp://x'}]})}).get('ok'))
+r = me.post({'action': 'test_db'})
+check('prova connessione MySQL: errore chiaro se non raggiungibile', not r.get('ok') and r.get('error'), r)
+r = me.post({'action': 'save_env', 'env': json.dumps({'remove_db_pass': True, 'remove_github_token': True})})
+cfg = json.load(open(os.path.join(WWW, 'scaffolder-pro', 'data', 'config.json')))
+check('password e token rimossi su richiesta', r.get('ok') and cfg['db_pass'] == '' and cfg['github_token'] == '' and r['config']['has_db_pass'] is False, cfg)
+check('prova GitHub senza token: errore', not me.post({'action': 'test_github'}).get('ok'))
+st, b = me.req(BASE + 'adminer/')
+check('Adminer: con MySQL irraggiungibile mostra il rimando alle Configurazioni (non il modulo di login)',
+      b'Cannot connect to MySQL' in b and b'auth[password]' not in b and b'../index.php#config' in b, (st, b[:300]))
+ht = open(os.path.join(WWW, 'scaffolder-pro', 'adminer', '.htaccess')).read()
+check('Adminer: adminer.php bloccato dal web (.htaccess)', '<Files "adminer.php">' in ht and 'Require all denied' in ht, ht)
+
+# ---------------------------------------------------------------------------
+section('Pubblica su GitHub (finto server)')
+def gh_state():
+    return json.load(urllib.request.urlopen(GH_URL + '__state'))
+def gh_files(st, repo, branch):
+    c = st['commits'][st['repos'][repo]['refs'][branch]]
+    return sorted(e['path'] for e in st['trees'][c['tree']])
+open(os.path.join(SITE, '.env'), 'w').write('SECRET=1\n')
+open(os.path.join(SITE, 'big.bin'), 'wb').write(b'\0' * (11 * 1048576))
+r = me.post({'action': 'github_plan'})
+check('anteprima: token mancante', r.get('ok') and r['has_token'] is False and r['name'] == 'site', r)
+r = me.post({'action': 'github_publish', 'repo': 'site'})
+check('senza token: errore', not r.get('ok'), r)
+me.post({'action': 'save_env', 'env': json.dumps({'github_token': 'ghp_testtoken1234'})})
+r = me.post({'action': 'github_plan'})
+check('anteprima: .env e file oltre 10 MB saltati, il resto contato', r.get('ok') and r['has_token'] and r['skipped_count'] >= 2
+      and '.env' in r['skipped'] and 'big.bin' in r['skipped'] and r['files'] >= 4 and not r['too_many'], r)
+check('nome repository non valido rifiutato', not me.post({'action': 'github_publish', 'repo': 'a b/c'}).get('ok'))
+check('branch non valido rifiutato', not me.post({'action': 'github_publish', 'repo': 'site', 'branch': 'a b'}).get('ok'))
+r = me.post({'action': 'github_publish', 'repo': 'site', 'private': '1', 'message': 'First'})
+check('repository creato e pubblicato', r.get('ok') and r['created'] is True and r['branch'] == 'main' and r['files'] == me.post({'action': 'github_plan'})['files']
+      and r['url'] == 'https://github.com/octo/site', r)
+st = gh_state()
+files = gh_files(st, 'octo/site', 'main')
+check('repo privato, nessun segreto né file grandi inviati', st['repos']['octo/site']['private'] is True and '.env' not in files and 'big.bin' not in files
+      and 'inc/config.php' in files and 'index.php' in files, files)
+check('commit con messaggio e il commit iniziale come genitore', any(c.get('message') == 'First' and c['parents'] == ['c0'] for c in st['commits'].values()), st['commits'])
+open(os.path.join(SITE, 'inc', 'extra.php'), 'w').write('<?php // nuovo\n')
+r = me.post({'action': 'github_publish', 'repo': 'site', 'message': 'Second'})
+st = gh_state()
+check('secondo invio: repository esistente, nuovo commit con nuovo file', r.get('ok') and r['created'] is False and 'inc/extra.php' in gh_files(st, 'octo/site', 'main'), r)
+r = me.post({'action': 'github_publish', 'repo': 'site', 'branch': 'dev', 'message': 'On dev'})
+check('branch nuovo creato dal predefinito', r.get('ok') and r['branch'] == 'dev' and 'dev' in gh_state()['repos']['octo/site']['refs'], r)
+os.remove(os.path.join(SITE, 'inc', 'extra.php')); os.remove(os.path.join(SITE, '.env')); os.remove(os.path.join(SITE, 'big.bin'))
+me.post({'action': 'save_env', 'env': json.dumps({'remove_github_token': True})})
 
 # ---------------------------------------------------------------------------
 section('Password, login perpetuo, uscita')
